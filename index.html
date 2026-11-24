@@ -1,0 +1,2879 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Ashen Oath — Chương I: Kẻ Mục Rữa</title>
+  <meta name="description" content="Chương 1: Hoang Nguyên Sương Mờ & Kẻ Mục Rữa — Web game hành động 3D dark fantasy soulslike." />
+  <meta property="og:title" content="Ashen Oath — Chương I" />
+  <meta property="og:description" content="Chương 1: Hoang Nguyên Sương Mờ & Kẻ Mục Rữa — Web game hành động 3D dark fantasy soulslike." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a090c" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-void: #09080a; --surface-panel: rgba(13, 11, 10, 0.88);
+      --border-bronze: rgba(164, 136, 86, 0.48); --border-bronze-bright: rgba(214, 180, 118, 0.82);
+      --gold-pale: #dfd1b0; --gold-warm: #c9a66b;
+      --hp-fill: #8d1f24; --hp-bright: #b92b31;
+      --fp-fill: #245375; --fp-bright: #3474a1;
+      --stam-fill: #32643b; --stam-bright: #498d56;
+      --ghost-drain: #c79a4b;
+      --safe-top: env(safe-area-inset-top, 0px); --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px);
+      --touch-scale: 1; --touch-opacity: 0.6;
+    }
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background-color: var(--bg-void); color: var(--gold-pale);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    }
+    #canvas-host { position: fixed; inset: 0; z-index: 1; background: radial-gradient(circle at 50% 42%, #191820 0%, #09080a 80%); }
+    #canvas-host canvas { display: block; width: 100%; height: 100%; outline: none; }
+    .vignette-layer {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 56%, rgba(5,4,6,0.68) 100%);
+    }
+
+    /* Màn hình Tiêu đề */
+    #title-screen {
+      position: fixed; inset: 0; z-index: 30;
+      display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+      padding: calc(24px + var(--safe-top)) calc(24px + var(--safe-right)) calc(22px + var(--safe-bottom)) calc(24px + var(--safe-left));
+      background: linear-gradient(180deg, rgba(8,7,10,0.78) 0%, rgba(8,7,10,0.18) 46%, rgba(8,7,10,0.86) 100%);
+      transition: opacity 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body[data-state="class_select"] #title-screen,
+    body[data-state="playing"] #title-screen,
+    body[data-state="paused"] #title-screen { opacity: 0; pointer-events: none; }
+
+    /* Màn hình Chọn Class (3-Card Carousel kiểu Dark Fantasy) */
+    #class-select-screen {
+      position: fixed; inset: 0; z-index: 32;
+      display: none; flex-direction: column; justify-content: space-between;
+      padding: calc(14px + var(--safe-top)) calc(22px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(22px + var(--safe-left));
+      background: radial-gradient(circle at 50% 44%, rgba(28,24,22,0.92) 0%, rgba(10,9,11,0.98) 78%);
+      color: var(--gold-pale);
+    }
+    body[data-state="class_select"] #class-select-screen { display: flex; }
+    .cs-topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid rgba(164,136,86,0.28);
+    }
+    .cs-title-wrap { display: flex; align-items: center; gap: 12px; }
+    .cs-emblem {
+      width: 30px; height: 30px; border: 1px solid var(--border-bronze);
+      background: rgba(24,20,16,0.9); display: flex; align-items: center; justify-content: center;
+    }
+    .cs-title {
+      margin: 0; font-family: 'Cinzel', Georgia, serif; font-size: clamp(0.95rem, 1.8vw, 1.24rem);
+      font-weight: 600; letter-spacing: 0.16em; color: #ece0c4;
+    }
+    .cs-page-ind {
+      font-family: 'Cinzel', Georgia, serif; font-size: 0.85rem; letter-spacing: 0.16em; color: var(--gold-warm);
+    }
+    .cs-carousel-stage {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      flex: 1; min-height: 0; padding: 10px 0;
+    }
+    .cs-arrow-btn {
+      width: 40px; height: 64px; flex-shrink: 0;
+      background: rgba(16,14,12,0.78); border: 1px solid rgba(164,136,86,0.42);
+      color: var(--gold-pale); font-family: 'Cinzel', serif; font-size: 1.4rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+    }
+    .cs-arrow-btn:hover { border-color: var(--border-bronze-bright); background: rgba(38,30,22,0.95); color: #fff4da; }
+    .cs-cards-row {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px; width: min(980px, 84vw); height: min(390px, 50vh);
+    }
+    .cs-card {
+      position: relative; display: flex; flex-direction: column; justify-content: space-between;
+      overflow: hidden; cursor: pointer; padding: 8px;
+      background: linear-gradient(180deg, rgba(24,22,22,0.9) 0%, rgba(10,9,10,0.98) 100%);
+      border: 1px solid rgba(124,104,68,0.42);
+      opacity: 0.56; transform: scale(0.98);
+      transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+    .cs-card:hover { opacity: 0.82; }
+    .cs-card.is-active {
+      opacity: 1; transform: scale(1);
+      border: 1.5px solid #e7d8b5;
+      background: radial-gradient(circle at 50% 42%, rgba(84,74,56,0.44) 0%, rgba(18,16,14,0.96) 76%);
+      box-shadow: 0 0 26px rgba(212,186,128,0.22), inset 0 0 24px rgba(226,204,154,0.12);
+    }
+    .cs-card-badge {
+      position: absolute; top: 8px; right: 9px; z-index: 2;
+      font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.1em;
+      color: rgba(223,209,176,0.75); background: rgba(10,9,9,0.72);
+      border: 1px solid rgba(164,136,86,0.35); padding: 2px 6px;
+    }
+    .cs-card-art { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+    .cs-card-art svg { width: 100%; height: 100%; max-height: 100%; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.85)); }
+    .cs-card-foot {
+      text-align: center; padding-top: 4px;
+      background: linear-gradient(180deg, rgba(10,9,10,0) 0%, rgba(10,9,10,0.9) 45%);
+    }
+    .cs-card-name {
+      font-family: 'Cinzel', Georgia, serif; font-size: clamp(0.86rem, 1.35vw, 1.08rem);
+      font-weight: 600; letter-spacing: 0.08em; color: #f3e6c8;
+    }
+    .cs-card-sub {
+      font-size: 0.78rem; color: rgba(201,166,107,0.82); letter-spacing: 0.06em;
+    }
+    .cs-info-strip {
+      width: min(1040px, 94vw); margin: 0 auto;
+      background: rgba(14,12,11,0.9); border: 1px solid rgba(164,136,86,0.36);
+      padding: 10px 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .cs-info-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .cs-desc-col { flex: 1 1 360px; }
+    .cs-desc-text { margin: 0 0 4px; font-size: 0.96rem; line-height: 1.32; color: #e8dac0; }
+    .cs-gear-text { font-size: 0.86rem; color: var(--gold-warm); letter-spacing: 0.03em; }
+    .cs-stats-grid {
+      display: grid; grid-template-columns: repeat(5, minmax(58px, auto)); gap: 4px 12px;
+      font-family: 'Cinzel', Georgia, serif; font-size: 0.72rem; letter-spacing: 0.05em;
+      border-left: 1px solid rgba(164,136,86,0.28); padding-left: 14px;
+    }
+    .cs-stat-cell { display: flex; justify-content: space-between; gap: 6px; color: rgba(223,209,176,0.78); }
+    .cs-stat-cell b { color: #f7e6bf; font-weight: 700; }
+    .cs-vagabond-opt {
+      display: none; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 5px 10px; background: rgba(46,32,20,0.45); border: 1px solid rgba(201,166,107,0.42);
+      font-size: 0.86rem; color: #f0dcb4;
+    }
+    .cs-vagabond-opt.visible { display: flex; }
+    .cs-bottom-bar {
+      width: min(1040px, 94vw); margin: 6px auto 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .cs-hints { font-size: 0.86rem; color: rgba(218,200,165,0.72); letter-spacing: 0.05em; }
+    .cs-action-btns { display: flex; align-items: center; gap: 10px; }
+    #cs-btn-stats-toggle { display: none; }
+    @media (max-height: 520px), (max-width: 860px) {
+      #class-select-screen { padding: 8px 14px; }
+      .cs-carousel-stage { padding: 4px 0; }
+      .cs-cards-row { height: min(210px, 46vh); gap: 8px; }
+      .cs-info-strip { padding: 6px 10px; gap: 5px; }
+      .cs-desc-text { font-size: 0.82rem; }
+      .cs-gear-text { font-size: 0.76rem; }
+      .cs-stats-grid { display: none; grid-template-columns: repeat(5, minmax(46px, auto)); border-left: 0; padding-left: 0; padding-top: 4px; border-top: 1px solid rgba(164,136,86,0.22); width: 100%; }
+      .cs-info-strip.show-stats .cs-stats-grid { display: grid; }
+      #cs-btn-stats-toggle { display: inline-flex; }
+      .cs-bottom-bar .btn-primary-dark { padding: 8px 22px; font-size: 0.8rem; }
+    }
+    .title-header-spacer { height: 1vh; }
+    .title-center {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      gap: 16px; max-width: 680px; margin-top: 4vh; margin-bottom: auto;
+    }
+    .title-crest { width: min(520px, 86vw); height: auto; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.9)); }
+    .title-subtitle {
+      margin: -6px 0 6px; font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(1rem, 1.8vw, 1.3rem); font-weight: 500; letter-spacing: 0.22em; color: rgba(218,200,165,0.78);
+    }
+    .title-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; }
+    .btn-primary-dark {
+      font-family: 'Cinzel', Georgia, serif; font-size: 1rem; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-pale);
+      background: rgba(16,13,11,0.88); border: 1px solid var(--border-bronze);
+      padding: 14px 44px; cursor: pointer; position: relative;
+      transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease, color 180ms ease;
+    }
+    .btn-primary-dark::before, .btn-primary-dark::after {
+      content: ''; position: absolute; width: 8px; height: 8px;
+      border-color: var(--gold-warm); border-style: solid; pointer-events: none;
+    }
+    .btn-primary-dark::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+    .btn-primary-dark::after { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+    .btn-primary-dark:hover, .btn-primary-dark:focus-visible {
+      outline: none; border-color: var(--border-bronze-bright); background: rgba(34,26,19,0.94); color: #fff4da;
+    }
+    .btn-primary-dark:active { transform: scale(0.985); }
+    .title-controls-hint {
+      font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.95rem; letter-spacing: 0.08em;
+      color: rgba(212,195,162,0.65); text-shadow: 0 1px 4px rgba(0,0,0,0.95); text-align: center;
+    }
+
+    /* HUD chính kiểu Souls */
+    #hud-root { position: fixed; inset: 0; z-index: 10; pointer-events: none; opacity: 0; transition: opacity 260ms ease; }
+    body[data-state="playing"] #hud-root { opacity: 1; }
+    body[data-state="paused"] #hud-root { opacity: 0; pointer-events: none; }
+    body[data-state="paused"] #world-overlays { opacity: 0; }
+
+    .hud-bars-cluster {
+      position: fixed; top: calc(20px + var(--safe-top)); left: calc(22px + var(--safe-left));
+      display: flex; flex-direction: column; gap: 6px; pointer-events: none;
+    }
+    .stat-bar-row { display: flex; align-items: center; gap: 8px; }
+    .stat-emblem { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.86; }
+    .stat-bar-frame {
+      position: relative; height: 10px; background: rgba(9,8,8,0.84);
+      border: 1px solid rgba(150,126,82,0.62);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.85), inset 0 1px 2px rgba(0,0,0,0.9); overflow: hidden;
+    }
+    .stat-bar-frame.is-hp { height: 11px; }
+    .stat-bar-frame.is-fp { height: 9px; }
+    .stat-bar-frame.is-stamina { height: 10px; }
+    .stat-bar-ghost, .stat-bar-fill { position: absolute; inset: 0; transform-origin: left center; will-change: transform; }
+    .stat-bar-ghost { background: var(--ghost-drain); opacity: 0.82; }
+    .stat-bar-fill.hp { background: linear-gradient(180deg, var(--hp-bright) 0%, var(--hp-fill) 55%, #5f1216 100%); }
+    .stat-bar-fill.fp { background: linear-gradient(180deg, var(--fp-bright) 0%, var(--fp-fill) 55%, #18364d 100%); }
+    .stat-bar-fill.stamina { background: linear-gradient(180deg, var(--stam-bright) 0%, var(--stam-fill) 55%, #1e3f24 100%); }
+    .stat-bar-frame.low-flash { border-color: rgba(215,75,65,0.95); }
+
+    .hud-top-actions {
+      position: fixed; top: calc(18px + var(--safe-top)); right: calc(20px + var(--safe-right));
+      display: flex; align-items: center; gap: 8px; pointer-events: auto;
+    }
+    .hud-icon-btn {
+      width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(13,11,10,0.78); border: 1px solid var(--border-bronze);
+      color: var(--gold-pale); cursor: pointer; padding: 0;
+      transition: border-color 160ms ease, background-color 160ms ease;
+    }
+    .hud-icon-btn:hover, .hud-icon-btn:focus-visible {
+      outline: none; border-color: var(--border-bronze-bright); background: rgba(28,22,17,0.9);
+    }
+
+    .hud-diamond-cluster {
+      position: fixed; bottom: calc(24px + var(--safe-bottom)); left: calc(28px + var(--safe-left));
+      width: 132px; height: 132px; pointer-events: none;
+    }
+    .diamond-slot {
+      position: absolute; width: 44px; height: 44px; background: rgba(11,10,10,0.84);
+      border: 1px solid rgba(154,128,82,0.6);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.85), 0 3px 10px rgba(0,0,0,0.75);
+      transform: rotate(45deg); display: flex; align-items: center; justify-content: center;
+    }
+    .diamond-slot.slot-top { top: 4px; left: 44px; }
+    .diamond-slot.slot-left { top: 44px; left: 4px; }
+    .diamond-slot.slot-right { top: 44px; left: 84px; }
+    .diamond-slot.slot-bottom { top: 84px; left: 44px; border-color: rgba(196,154,86,0.78); }
+    .diamond-slot-inner {
+      transform: rotate(-45deg); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; position: relative; width: 100%; height: 100%;
+    }
+    .slot-qty {
+      position: absolute; bottom: -2px; right: 2px; font-family: 'Cinzel', Georgia, serif;
+      font-size: 0.72rem; font-weight: 700; font-variant-numeric: tabular-nums;
+      color: #f3e4c3; text-shadow: 0 1px 3px #000;
+    }
+
+    .hud-runes-box {
+      position: fixed; bottom: calc(24px + var(--safe-bottom)); right: calc(26px + var(--safe-right));
+      display: flex; align-items: center; gap: 10px; padding: 6px 14px;
+      background: rgba(12,10,9,0.76); border: 1px solid rgba(152,126,80,0.45);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.7); pointer-events: none;
+    }
+    .runes-value {
+      font-family: 'Cinzel', Georgia, serif; font-size: 1.08rem; font-weight: 600;
+      font-variant-numeric: tabular-nums; letter-spacing: 0.08em; color: #ebd9ad; text-shadow: 0 1px 3px #000;
+    }
+
+    /* Thu gọn HUD khi ở chế độ cảm ứng hoặc màn ngang hẹp để tránh đè la bàn/nút */
+    @media (max-width: 960px) {
+      .hud-bars-cluster { top: calc(14px + var(--safe-top)); left: calc(16px + var(--safe-left)); transform: scale(0.76); transform-origin: top left; }
+      .hud-stance-line { display: none; }
+    }
+    body.touch-active .hud-bars-cluster { top: calc(14px + var(--safe-top)); left: calc(16px + var(--safe-left)); transform: scale(0.76); transform-origin: top left; }
+    body.touch-active .hud-stance-line { display: none; }
+    body.touch-active .hud-diamond-cluster { bottom: auto; top: calc(60px + var(--safe-top)); left: calc(16px + var(--safe-left)); transform: scale(0.64); transform-origin: top left; }
+    body.touch-active .hud-runes-box { bottom: auto; top: calc(14px + var(--safe-top)); right: calc(208px + var(--safe-right)); padding: 4px 10px; }
+
+    .hud-stance-line {
+      margin-top: 2px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 0.85rem;
+      letter-spacing: 0.08em; color: rgba(214,198,165,0.72); text-shadow: 0 1px 3px #000;
+    }
+
+    #floor-message-banner {
+      position: fixed; bottom: calc(34px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(8px);
+      max-width: min(640px, 88vw); padding: 10px 26px; background: rgba(12,10,9,0.88);
+      border-top: 1px solid rgba(182,152,98,0.52); border-bottom: 1px solid rgba(182,152,98,0.52);
+      text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.06rem;
+      letter-spacing: 0.04em; color: #efe2c6; text-shadow: 0 1px 4px #000;
+      opacity: 0; pointer-events: none; transition: opacity 240ms ease, transform 240ms ease;
+    }
+    #floor-message-banner.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    body.touch-active #floor-message-banner { bottom: calc(14px + var(--safe-bottom)); max-width: min(44vw, 380px); padding: 6px 14px; font-size: 0.86rem; }
+
+    /* Chiếu 3D->2D: Lock-on, máu địch, sát thương */
+    #world-overlays { position: fixed; inset: 0; z-index: 9; pointer-events: none; overflow: hidden; }
+    #lockon-reticle {
+      position: fixed; width: 22px; height: 22px; margin-left: -11px; margin-top: -11px;
+      opacity: 0; pointer-events: none; will-change: transform, opacity;
+    }
+    .enemy-hp-float { position: fixed; width: 112px; margin-left: -56px; pointer-events: none; opacity: 0; will-change: transform, opacity; }
+    .enemy-hp-name {
+      font-family: 'Cinzel', Georgia, serif; font-size: 0.66rem; letter-spacing: 0.1em;
+      text-align: center; color: #e4d6b6; text-shadow: 0 1px 3px #000; margin-bottom: 2px; white-space: nowrap;
+    }
+    .enemy-hp-track { position: relative; height: 5px; background: rgba(10,8,8,0.88); border: 1px solid rgba(145,118,76,0.65); overflow: hidden; }
+    .enemy-hp-ghost, .enemy-hp-fill { position: absolute; inset: 0; transform-origin: left center; }
+    .enemy-hp-ghost { background: #cfa04e; }
+    .enemy-hp-fill { background: #a72429; }
+    .dmg-popup {
+      position: fixed; font-family: 'Cinzel', Georgia, serif; font-size: 1.05rem; font-weight: 700;
+      font-variant-numeric: tabular-nums; color: #f6e7c4; text-shadow: 0 2px 4px #000, 0 0 8px rgba(0,0,0,0.9);
+      pointer-events: none; transform: translate(-50%, -50%); will-change: transform, opacity;
+    }
+    .dmg-popup.is-heavy { font-size: 1.32rem; color: #f4b860; }
+
+    /* Thông báo trung tâm */
+    #center-banner {
+      position: fixed; left: 0; right: 0; top: 42%; transform: translateY(-50%); z-index: 25;
+      text-align: center; padding: 18px 16px;
+      background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(8,6,6,0.78) 28%, rgba(8,6,6,0.78) 72%, rgba(0,0,0,0) 100%);
+      opacity: 0; pointer-events: none; transition: opacity 450ms ease;
+    }
+    #center-banner.visible { opacity: 1; }
+    #center-banner-text {
+      font-family: 'Cinzel', Georgia, serif; font-size: clamp(1.8rem, 4.4vw, 3.3rem);
+      font-weight: 600; letter-spacing: 0.28em; color: #c9a45c; text-shadow: 0 2px 14px rgba(0,0,0,0.95);
+    }
+
+    /* Menu Tạm dừng */
+    #pause-menu {
+      position: fixed; inset: 0; z-index: 40; display: none; background: rgba(6,5,7,0.72);
+      padding: calc(36px + var(--safe-top)) calc(32px + var(--safe-right)) calc(32px + var(--safe-bottom)) calc(36px + var(--safe-left));
+    }
+    body[data-state="paused"] #pause-menu { display: flex; gap: 32px; align-items: flex-start; }
+    .pause-nav {
+      width: min(270px, 36vw); display: flex; flex-direction: column; gap: 6px; padding: 20px 0;
+      background: var(--surface-panel); border: 1px solid var(--border-bronze); box-shadow: 0 12px 32px rgba(0,0,0,0.85);
+    }
+    .pause-nav-title {
+      padding: 0 20px 12px; margin-bottom: 6px; font-family: 'Cinzel', Georgia, serif; font-size: 1.05rem;
+      letter-spacing: 0.22em; color: var(--gold-warm); border-bottom: 1px solid rgba(164,136,86,0.28);
+    }
+    .pause-nav-btn {
+      width: 100%; text-align: left; background: transparent; border: 0; border-left: 2px solid transparent;
+      padding: 11px 20px; font-family: 'Cinzel', Georgia, serif; font-size: 0.92rem; letter-spacing: 0.14em;
+      color: rgba(223,209,176,0.82); cursor: pointer; transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    }
+    .pause-nav-btn:hover, .pause-nav-btn.active { background: rgba(164,136,86,0.14); color: #fff4da; border-left-color: var(--gold-warm); }
+    .pause-panel {
+      flex: 1; max-width: 580px; max-height: 78vh; overflow-y: auto; background: var(--surface-panel);
+      border: 1px solid var(--border-bronze); padding: 22px 26px; box-shadow: 0 12px 32px rgba(0,0,0,0.85);
+    }
+    .pause-panel h2 {
+      margin: 0 0 16px; font-family: 'Cinzel', Georgia, serif; font-size: 1.12rem; letter-spacing: 0.18em;
+      color: var(--gold-warm); border-bottom: 1px solid rgba(164,136,86,0.25); padding-bottom: 10px;
+    }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 1rem;
+    }
+    .setting-row label { color: var(--gold-pale); }
+    .setting-control { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+    .setting-control input[type="range"] { width: 130px; accent-color: var(--gold-warm); cursor: pointer; }
+    .btn-small-dark {
+      font-family: 'Cinzel', Georgia, serif; font-size: 0.78rem; letter-spacing: 0.12em;
+      color: var(--gold-pale); background: rgba(24,20,17,0.92); border: 1px solid var(--border-bronze);
+      padding: 7px 14px; cursor: pointer;
+    }
+    .btn-small-dark:hover { border-color: var(--border-bronze-bright); background: rgba(42,34,26,0.96); }
+    .btn-small-dark.is-active { background: rgba(154,122,68,0.34); border-color: var(--border-bronze-bright); color: #fff4da; }
+    .controls-table { width: 100%; border-collapse: collapse; font-size: 0.96rem; }
+    .controls-table td { padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .controls-table td:last-child { text-align: right; font-family: 'Cinzel', Georgia, serif; font-size: 0.82rem; color: var(--gold-warm); letter-spacing: 0.06em; }
+
+    /* Điều khiển cảm ứng */
+    #touch-layer { position: fixed; inset: 0; z-index: 18; pointer-events: none; display: none; }
+    body[data-state="playing"].touch-active #touch-layer, body.touch-editing #touch-layer { display: block; }
+    #touch-move-zone { position: fixed; top: 0; bottom: 0; left: 0; width: 46%; pointer-events: auto; touch-action: none; }
+    #touch-cam-zone { position: fixed; top: 0; bottom: 0; right: 0; width: 54%; pointer-events: auto; touch-action: none; }
+    body.left-handed #touch-move-zone { left: auto; right: 0; }
+    body.left-handed #touch-cam-zone { right: auto; left: 0; }
+    #joystick-base {
+      position: fixed; width: 118px; height: 118px; margin-left: -59px; margin-top: -59px; border-radius: 50%;
+      border: 1.5px solid rgba(212,182,122,0.45); background: rgba(12,10,9,0.42);
+      opacity: 0; pointer-events: none; transition: opacity 100ms ease;
+    }
+    #joystick-base.active { opacity: var(--touch-opacity); }
+    #joystick-sprint-ring { position: absolute; inset: 14px; border-radius: 50%; border: 1px dashed rgba(212,182,122,0.28); }
+    #joystick-knob {
+      position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin-left: -22px; margin-top: -22px;
+      border-radius: 50%; background: rgba(206,173,112,0.65); border: 1px solid rgba(255,240,200,0.8); will-change: transform;
+    }
+    #joystick-base.sprinting #joystick-knob { background: rgba(236,184,88,0.92); box-shadow: 0 0 12px rgba(236,184,88,0.65); }
+    #touch-buttons-root { position: fixed; inset: 0; pointer-events: none; }
+    .touch-btn {
+      position: fixed; border-radius: 50%; background: rgba(15,13,11,0.72);
+      border: 1.5px solid rgba(196,166,106,0.65); color: #f0e2c2; font-family: 'Cinzel', Georgia, serif;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      pointer-events: auto; touch-action: none; opacity: var(--touch-opacity); transform: scale(var(--touch-scale));
+      transition: opacity 90ms ease, border-color 90ms ease, background-color 90ms ease;
+    }
+    .touch-btn::after { content: ''; position: absolute; inset: -10px; border-radius: 50%; }
+    .touch-btn.pressed { opacity: 1; background: rgba(58,44,26,0.88); border-color: #f4d692; color: #fff8e6; }
+    .touch-btn.charging { border-color: #f0a84b; background: rgba(88,52,20,0.9); }
+    .touch-btn-light { width: 76px; height: 76px; }
+    .touch-btn-skill { width: 62px; height: 62px; border-color: rgba(110,168,214,0.75); }
+    .touch-btn-roll  { width: 68px; height: 68px; }
+    .touch-btn-lock  { width: 56px; height: 56px; }
+    .touch-btn.charging::before {
+      content: ''; position: absolute; inset: -5px; border-radius: 50%;
+      border: 2px solid #f4b860; box-shadow: 0 0 14px rgba(244,184,96,0.75);
+      pointer-events: none;
+    }
+    body.touch-editing .touch-btn { border-style: dashed; border-color: #f5cd79; opacity: 0.95; cursor: grab; z-index: 45; }
+    #touch-edit-banner {
+      display: none; position: fixed; top: calc(16px + var(--safe-top)); left: 50%; transform: translateX(-50%);
+      z-index: 46; background: var(--surface-panel); border: 1px solid var(--border-bronze-bright);
+      padding: 10px 18px; gap: 14px; align-items: center; pointer-events: auto;
+    }
+    body.touch-editing #touch-edit-banner { display: flex; }
+
+    #portrait-warning {
+      display: none; position: fixed; inset: 0; z-index: 60; background: rgba(8,7,9,0.96);
+      flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; gap: 14px;
+    }
+    @media (orientation: portrait) { body[data-state="playing"].touch-active #portrait-warning { display: flex; } }
+    @media (max-width: 740px) {
+      body[data-state="paused"] #pause-menu { flex-direction: column; gap: 14px; padding: 16px; }
+      .pause-nav { width: 100%; flex-direction: row; overflow-x: auto; padding: 6px; }
+      .pause-nav-title { display: none; }
+      .pause-nav-btn { border-left: 0; border-bottom: 2px solid transparent; padding: 8px 12px; white-space: nowrap; }
+      .pause-nav-btn.active { border-bottom-color: var(--gold-warm); }
+      .pause-panel { width: 100%; max-height: 68vh; padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body data-state="title">
+  <div id="canvas-host" data-testid="game-canvas-host"></div>
+  <div class="vignette-layer" aria-hidden="true"></div>
+
+  <!-- Màn hình Tiêu đề -->
+  <section id="title-screen" aria-label="Title Screen">
+    <div class="title-header-spacer"></div>
+    <div class="title-center">
+      <svg class="title-crest" viewBox="0 0 640 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ashen Oath">
+        <circle cx="320" cy="76" r="56" stroke="#8C7147" stroke-width="1.2" stroke-opacity="0.48" />
+        <circle cx="320" cy="76" r="44" stroke="#C9A66B" stroke-width="0.9" stroke-opacity="0.35" stroke-dasharray="4 6" />
+        <path d="M320 12 L323 138 M320 12 L317 138" stroke="#D9BF8C" stroke-width="1.4" stroke-opacity="0.72" />
+        <path d="M298 106 L342 106" stroke="#C9A66B" stroke-width="2" stroke-opacity="0.82" />
+        <line x1="70" y1="84" x2="225" y2="84" stroke="#8C7147" stroke-width="1" stroke-opacity="0.6" />
+        <line x1="415" y1="84" x2="570" y2="84" stroke="#8C7147" stroke-width="1" stroke-opacity="0.6" />
+        <text x="320" y="92" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-size="48" font-weight="600" letter-spacing="14" fill="#EFE2C4" stroke="#09080A" stroke-width="6" paint-order="stroke fill">ASHEN OATH</text>
+      </svg>
+      <p class="title-subtitle">CHƯƠNG I · HOANG NGUYÊN SƯƠNG MỜ</p>
+      <div class="title-actions">
+        <button id="btn-continue" class="btn-primary-dark" type="button" style="display:none;">Tiếp Tục Hành Trình</button>
+        <button id="btn-start" class="btn-primary-dark" data-start="true" type="button">Khởi Hành Mới</button>
+      </div>
+    </div>
+    <div class="title-controls-hint">
+      WASD Di chuyển · Shift Chạy · Space Lăn · Chuột trái (Nhấn/Giữ) Đánh nhẹ/mạnh · Q Kỹ năng · F Đỡ/Parry · E Tương tác · C Ngựa · M Bản đồ · I Túi
+    </div>
+  </section>
+
+  <!-- Màn hình Chọn Class -->
+  <section id="class-select-screen" aria-label="Chọn Khởi Nguyên Nhân Vật">
+    <div class="cs-topbar">
+      <div class="cs-title-wrap">
+        <div class="cs-emblem" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.6"><path d="M12 2L16 8L12 22L8 8L12 2Z" /><circle cx="12" cy="8" r="2" fill="#E8D6AF" /></svg>
+        </div>
+        <h1 class="cs-title">CHỌN KHỞI NGUYÊN · SELECT ORIGIN</h1>
+      </div>
+      <div id="cs-page-ind" class="cs-page-ind">01 / 10</div>
+    </div>
+
+    <div class="cs-carousel-stage">
+      <button id="cs-prev" class="cs-arrow-btn" type="button" aria-label="Class trước">&lsaquo;</button>
+      <div id="cs-cards-row" class="cs-cards-row"></div>
+      <button id="cs-next" class="cs-arrow-btn" type="button" aria-label="Class tiếp theo">&rsaquo;</button>
+    </div>
+
+    <div id="cs-info-strip" class="cs-info-strip">
+      <div class="cs-info-main">
+        <div class="cs-desc-col">
+          <p id="cs-desc-text" class="cs-desc-text"></p>
+          <div id="cs-gear-text" class="cs-gear-text"></div>
+        </div>
+        <div id="cs-stats-grid" class="cs-stats-grid"></div>
+      </div>
+      <div id="cs-vagabond-opt" class="cs-vagabond-opt">
+        <span>Kẻ Lang Thang mang 2 vũ khí + khiên (Nặng tải · Fat Roll). Bỏ bớt Giáo để lăn nhanh?</span>
+        <button id="cs-btn-drop-spear" class="btn-small-dark" type="button">Đang giữ Giáo (Nặng)</button>
+      </div>
+    </div>
+
+    <div class="cs-bottom-bar">
+      <div class="cs-hints">&larr;/&rarr; Chọn Class · Enter Bắt đầu · Esc Quay lại</div>
+      <div class="cs-action-btns">
+        <button id="cs-btn-stats-toggle" class="btn-small-dark" type="button">Chỉ số</button>
+        <button id="cs-btn-back" class="btn-small-dark" type="button">Quay lại</button>
+        <button id="cs-btn-confirm" class="btn-primary-dark" type="button">Xác nhận &amp; Bắt đầu</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="world-overlays" aria-hidden="true">
+    <svg id="lockon-reticle" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="#C9A66B" stroke-width="1.3" stroke-opacity="0.75" />
+      <circle cx="12" cy="12" r="3.4" fill="#FFF2CC" />
+    </svg>
+  </div>
+
+  <!-- HUD chính -->
+  <div id="hud-root">
+    <div class="hud-bars-cluster">
+      <div class="stat-bar-row">
+        <svg class="stat-emblem" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3L19 10L12 21L5 10L12 3Z" fill="#9E2A2F" stroke="#C9A66B" stroke-width="1.4" /></svg>
+        <div id="bar-hp-frame" class="stat-bar-frame is-hp" style="width: 240px;"><div id="bar-hp-ghost" class="stat-bar-ghost"></div><div id="bar-hp-fill" class="stat-bar-fill hp"></div></div>
+      </div>
+      <div class="stat-bar-row">
+        <svg class="stat-emblem" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C15.5 8 18 11.5 18 15A6 6 0 0 1 6 15C6 11.5 8.5 8 12 3Z" fill="#2B5E82" stroke="#C9A66B" stroke-width="1.3" /></svg>
+        <div id="bar-fp-frame" class="stat-bar-frame is-fp" style="width: 180px;"><div id="bar-fp-ghost" class="stat-bar-ghost"></div><div id="bar-fp-fill" class="stat-bar-fill fp"></div></div>
+      </div>
+      <div class="stat-bar-row">
+        <svg class="stat-emblem" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2L5 14H12L11 22L19 10H12L13 2Z" fill="#3B7A46" stroke="#C9A66B" stroke-width="1.2" /></svg>
+        <div id="bar-stam-frame" class="stat-bar-frame is-stamina" style="width: 210px;"><div id="bar-stam-ghost" class="stat-bar-ghost"></div><div id="bar-stam-fill" class="stat-bar-fill stamina"></div></div>
+      </div>
+      <div id="hud-stance-line" class="hud-stance-line">Trang bị: Trung bình (Roll nhanh) · [H] Đổi tải trọng</div>
+    </div>
+
+    <div class="hud-top-actions">
+      <button id="btn-mute" class="hud-icon-btn" type="button" aria-label="Bật/Tắt âm thanh" title="Âm thanh (M)" tabindex="-1">
+        <svg id="icon-sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 5L6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></svg>
+        <svg id="icon-sound-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z" /><line x1="22" y1="9" x2="16" y2="15" /><line x1="16" y1="9" x2="22" y2="15" /></svg>
+      </button>
+      <button id="btn-pause" class="hud-icon-btn" type="button" aria-label="Mở Menu (Esc)" title="Menu (Esc)" tabindex="-1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></svg>
+      </button>
+    </div>
+
+    <div class="hud-diamond-cluster" aria-label="Trang bị và vật phẩm">
+      <div class="diamond-slot slot-top" title="Phép thuật"><div class="diamond-slot-inner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#4682B4" stroke="#D9C398" stroke-width="1.2" /></svg></div></div>
+      <div class="diamond-slot slot-left" title="Khiên trái"><div class="diamond-slot-inner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3L19 6V12C19 16.5 15.8 19.8 12 21C8.2 19.8 5 16.5 5 12V6L12 3Z" fill="#4E4A45" stroke="#D9C398" stroke-width="1.3" /></svg></div></div>
+      <div class="diamond-slot slot-right" title="Kiếm phải"><div class="diamond-slot-inner"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18.5 3.5L20.5 5.5L9.5 16.5L7.5 14.5L18.5 3.5Z" fill="#C7C2B8" stroke="#EFE2C4" stroke-width="1" /><path d="M6 13L11 18M7.5 16.5L4.5 19.5" stroke="#C9A66B" stroke-width="1.8" /></svg></div></div>
+      <div class="diamond-slot slot-bottom" title="Bình hồi huyết"><div class="diamond-slot-inner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 3H15V6L18 11V19A2 2 0 0 1 16 21H8A2 2 0 0 1 6 19V11L9 6V3Z" fill="#9E2A2F" stroke="#E4C88E" stroke-width="1.2" /></svg><span id="hud-flask-count" class="slot-qty">4</span></div></div>
+    </div>
+
+    <div class="hud-runes-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="#C9A66B" stroke-width="1.6" /><path d="M12 5V19M8 9L16 15M16 9L8 15" stroke="#EAD4A2" stroke-width="1.2" /></svg>
+      <span id="hud-runes-val" class="runes-value">0</span>
+    </div>
+
+    <div id="floor-message-banner" role="status"></div>
+  </div>
+
+  <div id="center-banner" aria-live="polite"><div id="center-banner-text"></div></div>
+
+  <!-- Lớp điều khiển cảm ứng -->
+  <div id="touch-layer">
+    <div id="touch-move-zone"></div>
+    <div id="touch-cam-zone"></div>
+    <div id="joystick-base"><div id="joystick-sprint-ring"></div><div id="joystick-knob"></div></div>
+    <div id="touch-buttons-root">
+      <button id="tbtn-light" class="touch-btn touch-btn-light" data-action="light" type="button" aria-label="Đánh (Nhấn nhẹ / Giữ mạnh)"><span>ATK</span></button>
+      <button id="tbtn-skill" class="touch-btn touch-btn-skill" data-action="skill" type="button" aria-label="Kỹ năng Class"><span>SKILL</span></button>
+      <button id="tbtn-roll" class="touch-btn touch-btn-roll" data-action="roll" type="button" aria-label="Lăn né"><span>ROLL</span></button>
+      <button id="tbtn-lock" class="touch-btn touch-btn-lock" data-action="lock" type="button" aria-label="Khóa mục tiêu"><span>LOCK</span></button>
+    </div>
+    <div id="touch-edit-banner">
+      <span style="font-family: Cinzel, serif; font-size: 0.85rem; letter-spacing: 0.1em;">KÉO NÚT ĐỂ SẮP XẾP</span>
+      <button id="btn-touch-edit-done" class="btn-small-dark is-active" type="button">Xong</button>
+    </div>
+  </div>
+
+  <div id="portrait-warning">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="2" /><path d="M3 12a9 9 0 0 1 9-9" stroke-dasharray="2 2" /></svg>
+    <div style="font-family: Cinzel, serif; font-size: 1.15rem; letter-spacing: 0.14em; color: #EFE2C4;">XOAY NGANG MÀN HÌNH</div>
+    <p style="margin: 0; max-width: 320px; color: rgba(223,209,176,0.75);">Xoay ngang thiết bị để chiến đấu với cụm nút tối ưu hai tay.</p>
+    <button id="btn-force-landscape" class="btn-primary-dark" type="button" style="padding: 10px 24px; font-size: 0.82rem;">Toàn màn hình &amp; Xoay ngang</button>
+  </div>
+
+  <div id="pause-menu" role="dialog" aria-modal="true" aria-label="Game Menu">
+    <nav class="pause-nav">
+      <div class="pause-nav-title">MENU</div>
+      <button class="pause-nav-btn active" data-tab="settings" type="button">Settings</button>
+      <button class="pause-nav-btn" data-tab="controls" type="button">Controls</button>
+      <button class="pause-nav-btn" data-tab="touch" type="button">Touch Layout</button>
+      <button class="pause-nav-btn" id="btn-resume-game" type="button">Resume</button>
+      <button class="pause-nav-btn" id="btn-quit-title" type="button">Quit to Title</button>
+    </nav>
+    <div class="pause-panel" id="pause-panel-body"></div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://esm.sh/three@0.170.0';
+    import { RoomEnvironment } from 'https://esm.sh/three@0.170.0/examples/jsm/environments/RoomEnvironment.js';
+    import { CH1_CONFIG, getTerrainHeight, getWalkableHeight, getZoneAt, getSurfaceType, isInInkSwamp } from './src/ch1/data.js';
+    import { createOpenWorld } from './src/ch1/world.js';
+    import { createWorldEntities } from './src/ch1/entities.js';
+    import { createRottingBoss } from './src/ch1/boss.js';
+    import { createChapter1UI, loadChapter1Save, writeChapter1Save } from './src/ch1/ui.js';
+
+    // =========================================================================
+    // 1. CONFIG: Thông số cân bằng & cảm giác chiến đấu tập trung một chỗ
+    // =========================================================================
+    const CONFIG = {
+      stats: {
+        maxHp: 480, maxFp: 110, maxStamina: 130,
+        staminaRegenPerSec: 44, staminaRegenDelay: 1.0, // Giây chờ trước khi hồi Stamina
+        heavyLoad: false, // false = Roll nhanh, true = Giáp nặng (Fat Roll)
+      },
+      movement: {
+        walkSpeed: 3.1, runSpeed: 5.5, sprintSpeed: 8.1, strafeSpeed: 4.5,
+        sprintStaminaPerSec: 20, turnSpeed: 13.0, gravity: 22.0,
+      },
+      dodge: {
+        lightDuration: 0.50, lightIFrames: 0.30, lightSpeed: 10.6,
+        heavyDuration: 0.68, heavyIFrames: 0.22, heavySpeed: 7.4,
+        rollStaminaCost: 24,
+        backstepDuration: 0.36, backstepSpeed: 8.6, backstepStaminaCost: 16,
+      },
+      combat: {
+        inputBufferWindow: 0.16, // 160ms buffer
+        heavyHoldThreshold: 0.24, // Nhấn giữ >= 240ms nút đánh thường sẽ nạp đòn Heavy
+        hitStopLight: 0.065, hitStopHeavy: 0.095,
+        weaponReach: 2.05, weaponRadius: 0.44,
+        attacks: {
+          // Đánh thường KHÔNG tốn thể lực (usesStamina: false)
+          light1:  { label: 'Light Slash I',   windup: 0.17, active: 0.14, recovery: 0.26, cancelAt: 0.74, stamina: 0,  usesStamina: false, dmg: 68,  poiseDmg: 22, lungeSpeed: 4.2, hitStop: 0.06,  shake: 0.16 },
+          light2:  { label: 'Light Slash II',  windup: 0.15, active: 0.14, recovery: 0.27, cancelAt: 0.74, stamina: 0,  usesStamina: false, dmg: 74,  poiseDmg: 25, lungeSpeed: 4.5, hitStop: 0.065, shake: 0.18 },
+          light3:  { label: 'Overhead Cleave', windup: 0.24, active: 0.16, recovery: 0.36, cancelAt: 0.78, stamina: 0,  usesStamina: false, dmg: 108, poiseDmg: 42, lungeSpeed: 5.4, hitStop: 0.085, shake: 0.28 },
+          running: { label: 'Running Lunge',   windup: 0.19, active: 0.16, recovery: 0.34, cancelAt: 0.76, stamina: 0,  usesStamina: false, dmg: 96,  poiseDmg: 35, lungeSpeed: 8.8, hitStop: 0.075, shake: 0.24 },
+          rolling: { label: 'Rolling Sweep',   windup: 0.12, active: 0.14, recovery: 0.30, cancelAt: 0.72, stamina: 0,  usesStamina: false, dmg: 82,  poiseDmg: 28, lungeSpeed: 5.8, hitStop: 0.07,  shake: 0.22 },
+          // Đòn Heavy và Skill CÓ tiêu hao thể lực (usesStamina: true)
+          heavy:   { label: 'Heavy Thrust',    windup: 0.32, active: 0.18, recovery: 0.42, cancelAt: 0.80, stamina: 34, usesStamina: true,  dmg: 145, poiseDmg: 65, lungeSpeed: 7.6, hitStop: 0.095, shake: 0.38, maxChargeTime: 0.75, maxChargeMult: 1.55 },
+          skill:   { label: 'Weapon Skill',    windup: 0.22, active: 0.18, recovery: 0.34, cancelAt: 0.80, stamina: 20, usesStamina: true,  dmg: 140, poiseDmg: 55, lungeSpeed: 6.4, hitStop: 0.09,  shake: 0.34 },
+        },
+      },
+      camera: {
+        fov: 54, distance: 5.2, height: 1.72, shoulderOffset: 0.42,
+        minPitch: -0.52, maxPitch: 0.78,
+        mouseSens: 0.0024, touchSens: 0.0046, arrowTurnSpeed: 2.1,
+        lockOnRange: 22.0, lockOnDamping: 9.0, followDamping: 14.0,
+      },
+      arena: { radius: 25.0, particlePoolSize: 96 },
+    };
+
+    // 10 Class khởi đầu (Tên & trang bị theo phong cách dark fantasy gốc)
+    const CLASSES = [
+      {
+        id: 'vagabond', name: 'Kẻ Lang Thang', lv: 9,
+        stats: { vig: 15, mnd: 10, end: 11, str: 14, dex: 13, int: 9, fth: 9, arc: 7 },
+        desc: 'Cận chiến cân bằng với Sinh lực, Sức mạnh và Khéo léo cao. Khởi đầu cùng Kiếm Dài, Ngọn Giáo và Khiên (nên bỏ bớt 1 vũ khí để tránh nặng tải).',
+        gear: 'Kiếm Dài · Ngọn Giáo (dự phòng) · Khiên Sắt · Kỹ năng: Xung Kích Phá Giáp',
+        weaponType: 'sword', offhand: 'shield', helmType: 'knight', armorCol: 0x626770, trimCol: 0x9b8052, cloakCol: 0x3b1b1d,
+        bleed: 0, speedMult: 1.0, dmgMult: 1.05, heavyByDefault: true,
+        skill: { name: 'Xung Kích Phá Giáp', kind: 'melee', fpCost: 14, stamCost: 22, dmg: 155, poiseDmg: 62, bleed: 0, heal: 0, color: 0xf4c470 },
+      },
+      {
+        id: 'warrior', name: 'Chiến Binh', lv: 8,
+        stats: { vig: 11, mnd: 12, end: 11, str: 10, dex: 16, int: 10, fth: 8, arc: 9 },
+        desc: 'Tập trung vào sự nhanh nhẹn và khéo léo với Song Kiếm Cong để tung chuỗi đòn chớp nhoáng ở cự ly gần.',
+        gear: 'Song Kiếm Cong · Giáp Nhẹ Du Mục · Kỹ năng: Vũ Điệu Song Kiếm',
+        weaponType: 'curved', offhand: 'curved', helmType: 'turban', armorCol: 0x2f4b70, trimCol: 0xc29e5e, cloakCol: 0x1d314b,
+        bleed: 0, speedMult: 1.12, dmgMult: 0.96, heavyByDefault: false,
+        skill: { name: 'Vũ Điệu Song Kiếm', kind: 'spin', fpCost: 15, stamCost: 20, dmg: 152, poiseDmg: 42, bleed: 0, heal: 0, color: 0x8cc9ff },
+      },
+      {
+        id: 'hero', name: 'Anh Hùng', lv: 7,
+        stats: { vig: 14, mnd: 9, end: 12, str: 16, dex: 9, int: 7, fth: 8, arc: 11 },
+        desc: 'Tập trung mạnh vào Sức mạnh và Sinh lực với Rìu Chiến cùng Khiên để tạo nên những pha cận chiến uy lực.',
+        gear: 'Rìu Chiến · Khiên Tròn · Kỹ năng: Chiến Hống Bổ Địa',
+        weaponType: 'axe', offhand: 'shield', helmType: 'bandana', armorCol: 0x5c4230, trimCol: 0xb08a4c, cloakCol: 0x3d2a20,
+        bleed: 0, speedMult: 0.96, dmgMult: 1.14, heavyByDefault: false,
+        skill: { name: 'Chiến Hống Bổ Địa', kind: 'slam', fpCost: 14, stamCost: 24, dmg: 175, poiseDmg: 78, bleed: 0, heal: 0, color: 0xff9b48 },
+      },
+      {
+        id: 'bandit', name: 'Kẻ Cướp', lv: 5,
+        stats: { vig: 10, mnd: 11, end: 10, str: 9, dex: 13, int: 9, fth: 8, arc: 14 },
+        desc: 'Tập trung Khéo léo và Bí ẩn với Dao Găm, Cung Tên và Khiên Nhỏ; thích hợp đánh chí mạng, tích lũy chảy máu và lén lút.',
+        gear: 'Dao Găm (Chảy máu) · Cung Ngắn · Khiên Nhỏ · Kỹ năng: Mũi Tên Chí Mạng',
+        weaponType: 'dagger', offhand: 'buckler', helmType: 'hood', armorCol: 0x2a292e, trimCol: 0x7a6a50, cloakCol: 0x1b1a1f,
+        bleed: 28, speedMult: 1.15, dmgMult: 0.88, heavyByDefault: false, hasBow: true,
+        skill: { name: 'Mũi Tên Chí Mạng', kind: 'projectile', projType: 'arrow', fpCost: 10, stamCost: 16, dmg: 108, poiseDmg: 24, bleed: 48, heal: 0, color: 0xe6c78c },
+      },
+      {
+        id: 'astrologer', name: 'Nhà Chiêm Tinh', lv: 6,
+        stats: { vig: 9, mnd: 15, end: 9, str: 8, dex: 12, int: 16, fth: 7, arc: 9 },
+        desc: 'Pháp sư thuần túy với Thông tuệ và Trí lực cao, khởi đầu với Trượng Tinh Tú cùng các phép thuật đá lấp lánh.',
+        gear: 'Trượng Tinh Tú · Kiếm Ngắn · Kỹ năng: Tinh Thạch Tiễn',
+        weaponType: 'staff', offhand: 'none', helmType: 'magehood', armorCol: 0x213558, trimCol: 0xc9a864, cloakCol: 0x16223a,
+        bleed: 0, speedMult: 1.0, dmgMult: 0.92, heavyByDefault: false,
+        skill: { name: 'Tinh Thạch Tiễn', kind: 'projectile', projType: 'glint', fpCost: 12, stamCost: 14, dmg: 145, poiseDmg: 28, bleed: 0, heal: 0, color: 0x55d0ff },
+      },
+      {
+        id: 'prophet', name: 'Nhà Tiên Tri', lv: 7,
+        stats: { vig: 10, mnd: 14, end: 8, str: 11, dex: 10, int: 7, fth: 16, arc: 10 },
+        desc: 'Pháp sư sử dụng Thần chú với Đức tin và Trí lực cao, khởi đầu cùng Ấn Chú Thiêng, Ngọn Giáo và phép chữa lành / lửa.',
+        gear: 'Ngọn Giáo · Ấn Chú Thiêng · Kỹ năng: Thánh Hỏa Chữa Lành',
+        weaponType: 'spear', offhand: 'seal', helmType: 'blindfold', armorCol: 0x766c5c, trimCol: 0xb69354, cloakCol: 0x4b4238,
+        bleed: 0, speedMult: 1.0, dmgMult: 0.98, heavyByDefault: false,
+        skill: { name: 'Thánh Hỏa Chữa Lành', kind: 'heal_flame', fpCost: 18, stamCost: 16, dmg: 125, poiseDmg: 36, bleed: 0, heal: 105, color: 0xff7b28 },
+      },
+      {
+        id: 'samurai', name: 'Samurai', lv: 9,
+        stats: { vig: 12, mnd: 11, end: 13, str: 12, dex: 15, int: 9, fth: 8, arc: 8 },
+        desc: 'Thể chất mạnh mẽ với Khéo léo và Bền bỉ cao; trang bị Uchigatana (gây sát thương chảy máu) cùng Trường Cung.',
+        gear: 'Uchigatana (Chảy máu) · Trường Cung · Kỹ năng: Cư Hợp Trảm Nguyệt',
+        weaponType: 'katana', offhand: 'none', helmType: 'kabuto', armorCol: 0x2b364a, trimCol: 0xd0ac68, cloakCol: 0x4e1e22,
+        bleed: 34, speedMult: 1.08, dmgMult: 1.06, heavyByDefault: false, hasBow: true,
+        skill: { name: 'Cư Hợp Trảm Nguyệt', kind: 'melee', fpCost: 15, stamCost: 20, dmg: 162, poiseDmg: 52, bleed: 45, heal: 0, color: 0xdc444c },
+      },
+      {
+        id: 'prisoner', name: 'Tù Nhân', lv: 9,
+        stats: { vig: 11, mnd: 12, end: 11, str: 11, dex: 14, int: 14, fth: 6, arc: 9 },
+        desc: 'Kiếm sĩ kết hợp Thông tuệ và Khéo léo; bắt đầu với Mặt Nạ Sắt, Kiếm Đâm, Trượng và phép thuật đá lấp lánh.',
+        gear: 'Kiếm Đâm · Trượng Phép · Kỹ năng: Ma Kiếm Tinh Thạch',
+        weaponType: 'rapier', offhand: 'staff_off', helmType: 'ironmask', armorCol: 0x444850, trimCol: 0x777c84, cloakCol: 0x2b2e33,
+        bleed: 0, speedMult: 1.1, dmgMult: 1.0, heavyByDefault: false,
+        skill: { name: 'Ma Kiếm Tinh Thạch', kind: 'projectile', projType: 'glint', fpCost: 14, stamCost: 16, dmg: 150, poiseDmg: 32, bleed: 0, heal: 0, color: 0x62e2ff },
+      },
+      {
+        id: 'confessor', name: 'Thầy Xưng Tội', lv: 10,
+        stats: { vig: 10, mnd: 13, end: 10, str: 12, dex: 12, int: 9, fth: 14, arc: 9 },
+        desc: 'Kết hợp Sức mạnh/Khéo léo và Đức tin, bắt đầu ở Cấp 10 với Kiếm Rộng, Khiên và thần chú hồi phục / ẩn thân.',
+        gear: 'Kiếm Rộng · Khiên Sắt · Ấn Chú · Kỹ năng: Thánh Ảnh Hồi Phục',
+        weaponType: 'sword', offhand: 'shield', helmType: 'hood', armorCol: 0x26252a, trimCol: 0xa48a52, cloakCol: 0x161418,
+        bleed: 0, speedMult: 1.02, dmgMult: 1.06, heavyByDefault: false,
+        skill: { name: 'Thánh Ảnh Hồi Phục', kind: 'heal_stealth', fpCost: 18, stamCost: 16, dmg: 0, poiseDmg: 0, bleed: 0, heal: 125, color: 0xe6d294 },
+      },
+      {
+        id: 'wretch', name: 'Kẻ Khốn Khổ', lv: 1,
+        stats: { vig: 10, mnd: 10, end: 10, str: 10, dex: 10, int: 10, fth: 10, arc: 10 },
+        desc: 'Cấp 1 "trang giấy trắng" với 10 điểm mọi chỉ số và chỉ một cây Chùy Gỗ — lý tưởng cho thử thách hoặc tối ưu tùy ý.',
+        gear: 'Chùy Gỗ · Khố Vải Thô · Kỹ năng: Đập Gậy Cuồng Nộ',
+        weaponType: 'club', offhand: 'none', helmType: 'bare', armorCol: 0x786250, trimCol: 0x5c4636, cloakCol: 0x42382e,
+        bleed: 0, speedMult: 1.04, dmgMult: 0.94, heavyByDefault: false,
+        skill: { name: 'Đập Gậy Cuồng Nộ', kind: 'slam', fpCost: 8, stamCost: 20, dmg: 158, poiseDmg: 85, bleed: 0, heal: 0, color: 0xd9a86c },
+      },
+    ];
+
+    // Biến toán học dùng chung tránh cấp phát rác (Zero-GC)
+    const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _v4 = new THREE.Vector3();
+    const _m4 = new THREE.Matrix4(), _q1 = new THREE.Quaternion(), _color = new THREE.Color();
+
+    // =========================================================================
+    // 2. AUDIO: Tổng hợp âm thanh WebAudio (không cần file ngoài)
+    // =========================================================================
+    const AudioSys = (() => {
+      let ctx = null, masterGain = null, noiseBuf = null, muted = false;
+
+      function ensureCtx() {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          ctx = new AudioCtx();
+          masterGain = ctx.createGain();
+          masterGain.gain.value = muted ? 0 : 0.45;
+          masterGain.connect(ctx.destination);
+          const len = ctx.sampleRate * 0.6;
+          noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const data = noiseBuf.getChannelData(0);
+          for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+        }
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        return ctx;
+      }
+      function setMuted(val) {
+        muted = !!val;
+        if (masterGain && ctx) masterGain.gain.setTargetAtTime(muted ? 0 : 0.45, ctx.currentTime, 0.02);
+      }
+      function isMuted() { return muted; }
+
+      function playSwing(heavy = false, pitchMult = 1.0) {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        const now = ctx.currentTime, src = ctx.createBufferSource();
+        src.buffer = noiseBuf;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass'; filter.Q.value = heavy ? 1.8 : 2.4;
+        filter.frequency.setValueAtTime((heavy ? 360 : 580) * pitchMult, now);
+        filter.frequency.exponentialRampToValueAtTime((heavy ? 120 : 210) * pitchMult, now + (heavy ? 0.24 : 0.15));
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.001, now);
+        g.gain.linearRampToValueAtTime(heavy ? 0.52 : 0.35, now + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.001, now + (heavy ? 0.27 : 0.17));
+        src.connect(filter).connect(g).connect(masterGain);
+        src.start(now); src.stop(now + 0.3);
+      }
+
+      function playHit(heavy = false) {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(heavy ? 145 : 190, now);
+        osc.frequency.exponentialRampToValueAtTime(38, now + (heavy ? 0.22 : 0.14));
+        const g1 = ctx.createGain();
+        g1.gain.setValueAtTime(heavy ? 0.72 : 0.52, now);
+        g1.gain.exponentialRampToValueAtTime(0.001, now + (heavy ? 0.24 : 0.15));
+        osc.connect(g1).connect(masterGain);
+        osc.start(now); osc.stop(now + 0.26);
+
+        const metal = ctx.createOscillator();
+        metal.type = 'sawtooth';
+        metal.frequency.setValueAtTime(heavy ? 760 : 980, now);
+        metal.frequency.exponentialRampToValueAtTime(280, now + 0.11);
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.frequency.value = 1200; bp.Q.value = 3.0;
+        const g2 = ctx.createGain();
+        g2.gain.setValueAtTime(0.28, now);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        metal.connect(bp).connect(g2).connect(masterGain);
+        metal.start(now); metal.stop(now + 0.13);
+      }
+
+      function playRoll(heavy = false) {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        const now = ctx.currentTime, src = ctx.createBufferSource();
+        src.buffer = noiseBuf;
+        const lp = ctx.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(heavy ? 420 : 640, now);
+        lp.frequency.exponentialRampToValueAtTime(140, now + 0.22);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(heavy ? 0.48 : 0.28, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + (heavy ? 0.26 : 0.18));
+        src.connect(lp).connect(g).connect(masterGain);
+        src.start(now); src.stop(now + 0.28);
+      }
+
+      function playTone(fStart, fEnd, dur, vol) {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        const now = ctx.currentTime, osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(fStart, now);
+        osc.frequency.exponentialRampToValueAtTime(fEnd, now + dur);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + dur + 0.01);
+        osc.connect(g).connect(masterGain);
+        osc.start(now); osc.stop(now + dur + 0.02);
+      }
+      let musicTick = 0;
+      function playParry() {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        playTone(980, 1680, 0.14, 0.28);
+        playTone(620, 1240, 0.18, 0.22);
+      }
+      function playGuard() {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        playTone(280, 110, 0.12, 0.24);
+      }
+      function playFootstep(surface) {
+        if (!ctx || ctx.state !== 'running' || muted) return;
+        const now = ctx.currentTime, src = ctx.createBufferSource();
+        src.buffer = noiseBuf;
+        const f = ctx.createBiquadFilter();
+        f.type = surface === 'stone' ? 'highpass' : 'lowpass';
+        f.frequency.value = surface === 'mud_ink' ? 280 : (surface === 'stone' ? 1100 : 520);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(surface === 'mud_ink' ? 0.14 : 0.08, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        src.connect(f).connect(g).connect(masterGain);
+        src.start(now); src.stop(now + 0.09);
+      }
+      function updateMusic(dt, danger, bossActive, bossPhase, paused) {
+        if (!ctx || ctx.state !== 'running' || muted || paused) return;
+        musicTick -= dt;
+        if (musicTick > 0) return;
+        if (bossActive) {
+          musicTick = bossPhase === 2 ? 0.42 : 0.58;
+          const notes = bossPhase === 2 ? [110, 130.8, 146.8, 164.8, 116.5] : [98, 116.5, 130.8, 146.8];
+          const f = notes[Math.floor(Math.random() * notes.length)];
+          playTone(f, f * 0.98, 0.48, 0.075);
+        } else {
+          musicTick = 2.4 - danger * 0.35;
+          const base = danger >= 2 ? 82.4 : 110;
+          playTone(base, base * 1.02, 1.8, 0.032);
+        }
+      }
+      return {
+        ensureCtx, setMuted, isMuted, playSwing, playHit, playRoll,
+        playParry, playGuard, playFootstep, updateMusic,
+        playLockOn: () => playTone(660, 990, 0.07, 0.14),
+        playUiClick: () => playTone(420, 240, 0.05, 0.12),
+      };
+    })();
+
+    // =========================================================================
+    // 3. INPUT: PC (Chuột/Phím), Gamepad API và Multi-Touch (Joystick + Nút)
+    // =========================================================================
+    const InputSys = (() => {
+      const DEFAULT_SETTINGS = {
+        touchMode: ('ontouchstart' in window) || (navigator.maxTouchPoints > 0),
+        camSens: 1.0, touchScale: 1.0, touchOpacity: 0.6,
+        leftHanded: false, vibration: true, autoAttackOnLock: false, viewPreset: 'medium',
+        btnPositions: {
+          light: { rx: 32, by: 30 }, skill: { rx: 46, by: 122 }, roll: { rx: 122, by: 36 }, lock: { rx: 128, by: 120 },
+          parry: { rx: 204, by: 44 }, interact: { rx: 208, by: 122 }, mount: { rx: 32, by: 202 }, map: { rx: 92, by: 202 },
+        },
+      };
+
+      function loadSettings() {
+        try {
+          const raw = localStorage.getItem('ashen_oath_cfg_v1');
+          if (!raw) return structuredClone(DEFAULT_SETTINGS);
+          const parsed = JSON.parse(raw);
+          const mergedBtns = { ...DEFAULT_SETTINGS.btnPositions, ...(parsed.btnPositions || {}) };
+          delete mergedBtns.heavy;
+          return { ...structuredClone(DEFAULT_SETTINGS), ...parsed, btnPositions: mergedBtns };
+        } catch { return structuredClone(DEFAULT_SETTINGS); }
+      }
+      const settings = loadSettings();
+      function saveSettings() { try { localStorage.setItem('ashen_oath_cfg_v1', JSON.stringify(settings)); } catch {} }
+
+      const keys = new Set(), mouseDown = { left: false, right: false };
+      let rmbDragDist = 0, lastDragX = 0, lastDragY = 0, camDeltaX = 0, camDeltaY = 0;
+
+      // Bộ đệm hành động (~180ms hoặc tối thiểu 2 frame) + Nhấn/Giữ nút đánh thường (theo thời gian thực)
+      const buffered = new Map(), justPressed = new Set();
+      let attackHeld = false, attackPressSec = 0, attackHoldTime = 0, heavyReleaseCharge = 0;
+
+      // Trạng thái Touch
+      let joyTouchId = null, joyOriginX = 0, joyOriginY = 0, joyVecX = 0, joyVecY = 0, joySprinting = false;
+      let camTouchId = null, camTouchLastX = 0, camTouchLastY = 0, lastCamTapTime = 0;
+      const btnTouches = new Map();
+      let editingTouchLayout = false, dragBtnInfo = null;
+      const prevPadButtons = new Array(16).fill(false);
+
+      const nowSec = () => performance.now() * 0.001;
+      function queueBuffer(action) { buffered.set(action, { exp: nowSec() + CONFIG.combat.inputBufferWindow, frames: 2 }); justPressed.add(action); }
+      function consumeBuffered(action) {
+        const entry = buffered.get(action);
+        buffered.delete(action);
+        return !!entry && (nowSec() <= entry.exp || entry.frames > 0);
+      }
+      function consumeHeavyCharge() {
+        const c = heavyReleaseCharge;
+        heavyReleaseCharge = 0;
+        return c;
+      }
+      function hasBuffered(action) { const entry = buffered.get(action); return !!entry && (nowSec() <= entry.exp || entry.frames > 0); }
+      function consumeJustPressed(action) { return justPressed.delete(action); }
+
+      function clearAllHeld() {
+        keys.clear(); mouseDown.left = false; mouseDown.right = false; rmbDragDist = 0;
+        attackHeld = false; attackPressSec = 0; attackHoldTime = 0; joyTouchId = null; joyVecX = 0; joyVecY = 0;
+        joySprinting = false; camTouchId = null; btnTouches.clear();
+        document.getElementById('joystick-base')?.classList.remove('active', 'sprinting');
+        document.querySelectorAll('.touch-btn').forEach(b => b.classList.remove('pressed', 'charging'));
+      }
+      function vibrate(ms) { if (settings.vibration && settings.touchMode && navigator.vibrate) try { navigator.vibrate(ms); } catch {} }
+
+      function applyTouchStyles() {
+        document.body.classList.toggle('touch-active', !!settings.touchMode);
+        document.body.classList.toggle('left-handed', !!settings.leftHanded);
+        document.documentElement.style.setProperty('--touch-scale', String(settings.touchScale));
+        document.documentElement.style.setProperty('--touch-opacity', String(settings.touchOpacity));
+        const mirror = !!settings.leftHanded;
+        for (const [action, pos] of Object.entries(settings.btnPositions)) {
+          const el = document.getElementById(`tbtn-${action}`);
+          if (!el) continue;
+          el.style.bottom = `calc(${pos.by}px + var(--safe-bottom))`;
+          el.style.left = mirror ? `calc(${pos.rx}px + var(--safe-left))` : 'auto';
+          el.style.right = mirror ? 'auto' : `calc(${pos.rx}px + var(--safe-right))`;
+        }
+      }
+      function setTouchEditMode(active) { editingTouchLayout = active; document.body.classList.toggle('touch-editing', active); }
+
+      function startAttackPress() {
+        attackHeld = true;
+        attackPressSec = nowSec();
+        attackHoldTime = 0;
+      }
+      function releaseAttackPress(autoMax = false) {
+        if (!attackHeld) return;
+        const held = Math.max(attackHoldTime, nowSec() - attackPressSec);
+        attackHeld = false;
+        attackHoldTime = 0;
+        document.getElementById('tbtn-light')?.classList.remove('charging');
+        const thresh = CONFIG.combat.heavyHoldThreshold;
+        if (autoMax || held >= thresh) {
+          heavyReleaseCharge = autoMax ? CONFIG.combat.attacks.heavy.maxChargeTime : Math.max(0, held - thresh);
+          queueBuffer('heavy');
+        } else {
+          queueBuffer('light');
+        }
+      }
+
+      function init(canvasEl, onPauseToggle, onToggleWeight, onToggleMute) {
+        applyTouchStyles();
+        window.addEventListener('blur', clearAllHeld);
+        document.addEventListener('visibilitychange', () => { if (document.hidden) clearAllHeld(); });
+
+        // Phím PC
+        window.addEventListener('keydown', (e) => {
+          if (e.repeat) return;
+          const state = document.body.dataset.state;
+          if ((e.code === 'Escape' || e.code === 'KeyP') && (state === 'playing' || state === 'paused')) { e.preventDefault(); onPauseToggle(); return; }
+          if (e.code === 'KeyN') { onToggleMute(); return; }
+          if (state !== 'playing') return;
+          keys.add(e.code);
+          if (e.code === 'Space') { e.preventDefault(); queueBuffer('roll'); }
+          else if (e.code === 'Tab') { e.preventDefault(); justPressed.add('lock'); }
+          else if (e.code === 'KeyJ') startAttackPress();
+          else if (e.code === 'KeyQ') queueBuffer('skill');
+          else if (e.code === 'KeyR') justPressed.add('flask');
+          else if (e.code === 'KeyH') onToggleWeight();
+          else if (e.code === 'KeyF') justPressed.add('parry');
+          else if (e.code === 'KeyE') justPressed.add('interact');
+          else if (e.code === 'KeyC') justPressed.add('mount');
+          else if (e.code === 'KeyM') justPressed.add('map');
+          else if (e.code === 'KeyI' || e.code === 'KeyB') justPressed.add('bag');
+          else if (e.code === 'KeyT') justPressed.add('timeAdvance');
+          else if (e.code === 'Digit1') justPressed.add('useChalk');
+          else if (e.code === 'Digit2') justPressed.add('useTalisman');
+          else if (e.code === 'F6') { e.preventDefault(); justPressed.add('warpF6'); }
+          else if (e.code === 'F7') { e.preventDefault(); justPressed.add('warpF7'); }
+          else if (e.code === 'F8') { e.preventDefault(); justPressed.add('warpF8'); }
+        });
+        window.addEventListener('keyup', (e) => {
+          keys.delete(e.code);
+          if (e.code === 'KeyJ') releaseAttackPress(false);
+        });
+
+        // Chuột PC: LMB nhấn = Đánh nhẹ, giữ = Nạp Heavy; RMB nhấp = Kỹ năng, giữ kéo = Xoay Camera (fallback khi không PointerLock)
+        canvasEl.addEventListener('contextmenu', (e) => e.preventDefault());
+        canvasEl.addEventListener('mousedown', (e) => {
+          if (document.body.dataset.state !== 'playing') return;
+          AudioSys.ensureCtx();
+          if (!settings.touchMode && document.pointerLockElement !== canvasEl) {
+            try { const p = canvasEl.requestPointerLock?.(); if (p?.catch) p.catch(() => {}); } catch {}
+          }
+          if (e.button === 0) {
+            mouseDown.left = true;
+            startAttackPress();
+          } else if (e.button === 2) {
+            mouseDown.right = true; rmbDragDist = 0; lastDragX = e.clientX; lastDragY = e.clientY;
+          } else if (e.button === 1) { e.preventDefault(); justPressed.add('lock'); }
+        });
+        window.addEventListener('mouseup', (e) => {
+          if (e.button === 0) { mouseDown.left = false; releaseAttackPress(false); }
+          else if (e.button === 2) {
+            if (mouseDown.right && rmbDragDist < 6 && document.body.dataset.state === 'playing') queueBuffer('skill');
+            mouseDown.right = false;
+          }
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (document.body.dataset.state !== 'playing') return;
+          if (document.pointerLockElement === canvasEl) {
+            camDeltaX += e.movementX * CONFIG.camera.mouseSens * settings.camSens;
+            camDeltaY += e.movementY * CONFIG.camera.mouseSens * settings.camSens;
+          } else if (mouseDown.right && (e.buttons & 2)) {
+            const dx = e.clientX - lastDragX, dy = e.clientY - lastDragY;
+            rmbDragDist += Math.hypot(dx, dy);
+            camDeltaX += dx * CONFIG.camera.mouseSens * 1.4 * settings.camSens;
+            camDeltaY += dy * CONFIG.camera.mouseSens * 1.4 * settings.camSens;
+            lastDragX = e.clientX; lastDragY = e.clientY;
+          }
+        });
+
+        // Cảm ứng: Floating Joystick (nửa trái)
+        const moveZone = document.getElementById('touch-move-zone');
+        const joyBase = document.getElementById('joystick-base');
+        const joyKnob = document.getElementById('joystick-knob');
+        const maxRadius = 46;
+
+        moveZone.addEventListener('touchstart', (e) => {
+          if (editingTouchLayout || document.body.dataset.state !== 'playing') return;
+          e.preventDefault(); AudioSys.ensureCtx();
+          for (const t of e.changedTouches) {
+            if (joyTouchId === null) {
+              joyTouchId = t.identifier; joyOriginX = t.clientX; joyOriginY = t.clientY;
+              joyVecX = 0; joyVecY = 0; joySprinting = false;
+              joyBase.style.left = `${joyOriginX}px`; joyBase.style.top = `${joyOriginY}px`;
+              joyBase.classList.add('active'); joyKnob.style.transform = 'translate(0px, 0px)';
+            }
+          }
+        }, { passive: false });
+        moveZone.addEventListener('touchmove', (e) => {
+          if (joyTouchId === null) return;
+          e.preventDefault();
+          for (const t of e.changedTouches) {
+            if (t.identifier === joyTouchId) {
+              const dx = t.clientX - joyOriginX, dy = t.clientY - joyOriginY, dist = Math.hypot(dx, dy);
+              const clamped = Math.min(dist, maxRadius), nx = dist > 0.001 ? dx / dist : 0, ny = dist > 0.001 ? dy / dist : 0;
+              joyKnob.style.transform = `translate(${nx * clamped}px, ${ny * clamped}px)`;
+              const norm = Math.min(dist / maxRadius, 1.0);
+              joyVecX = nx * norm; joyVecY = ny * norm;
+              joySprinting = dist > maxRadius * 0.88;
+              joyBase.classList.toggle('sprinting', joySprinting);
+            }
+          }
+        }, { passive: false });
+        const endJoy = (e) => {
+          for (const t of e.changedTouches) {
+            if (t.identifier === joyTouchId) {
+              joyTouchId = null; joyVecX = 0; joyVecY = 0; joySprinting = false;
+              joyBase.classList.remove('active', 'sprinting'); joyKnob.style.transform = 'translate(0px, 0px)';
+            }
+          }
+        };
+        moveZone.addEventListener('touchend', endJoy, { passive: false });
+        moveZone.addEventListener('touchcancel', endJoy, { passive: false });
+
+        // Cảm ứng: Vuốt camera & chạm đúp Lock-on (nửa phải)
+        const camZone = document.getElementById('touch-cam-zone');
+        camZone.addEventListener('touchstart', (e) => {
+          if (editingTouchLayout || document.body.dataset.state !== 'playing') return;
+          e.preventDefault(); AudioSys.ensureCtx();
+          for (const t of e.changedTouches) {
+            if (camTouchId === null) {
+              camTouchId = t.identifier; camTouchLastX = t.clientX; camTouchLastY = t.clientY;
+              const now = performance.now();
+              if (now - lastCamTapTime < 260) { justPressed.add('lock'); vibrate(14); lastCamTapTime = 0; }
+              else lastCamTapTime = now;
+            }
+          }
+        }, { passive: false });
+        camZone.addEventListener('touchmove', (e) => {
+          if (camTouchId === null) return;
+          e.preventDefault();
+          for (const t of e.changedTouches) {
+            if (t.identifier === camTouchId) {
+              camDeltaX += (t.clientX - camTouchLastX) * CONFIG.camera.touchSens * settings.camSens;
+              camDeltaY += (t.clientY - camTouchLastY) * CONFIG.camera.touchSens * settings.camSens;
+              camTouchLastX = t.clientX; camTouchLastY = t.clientY;
+            }
+          }
+        }, { passive: false });
+        const endCam = (e) => { for (const t of e.changedTouches) if (t.identifier === camTouchId) camTouchId = null; };
+        camZone.addEventListener('touchend', endCam, { passive: false });
+        camZone.addEventListener('touchcancel', endCam, { passive: false });
+
+        // Cụm nút cảm ứng + Kéo thả tùy chỉnh bố cục
+        function updateDraggedBtn(cx, cy) {
+          const mirror = !!settings.leftHanded;
+          const dx = cx - dragBtnInfo.startX, dy = cy - dragBtnInfo.startY;
+          const newRx = Math.max(12, Math.min(window.innerWidth * 0.45, dragBtnInfo.origRx + (mirror ? dx : -dx)));
+          const newBy = Math.max(16, Math.min(window.innerHeight * 0.72, dragBtnInfo.origBy - dy));
+          settings.btnPositions[dragBtnInfo.action] = { rx: Math.round(newRx), by: Math.round(newBy) };
+          applyTouchStyles();
+        }
+        document.querySelectorAll('.touch-btn').forEach((btn) => {
+          const action = btn.dataset.action;
+          btn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); e.stopPropagation(); AudioSys.ensureCtx();
+            const t = e.changedTouches[0]; if (!t) return;
+            if (editingTouchLayout) {
+              dragBtnInfo = { action, touchId: t.identifier, startX: t.clientX, startY: t.clientY, origRx: settings.btnPositions[action].rx, origBy: settings.btnPositions[action].by };
+              return;
+            }
+            if (document.body.dataset.state !== 'playing') return;
+            btnTouches.set(t.identifier, action); btn.classList.add('pressed'); vibrate(10);
+            if (action === 'light') startAttackPress();
+            else if (action === 'roll') queueBuffer('roll');
+            else if (action === 'lock') justPressed.add('lock');
+            else if (action === 'skill') queueBuffer('skill');
+            else if (action === 'parry') { justPressed.add('parry'); keys.add('TouchGuard'); }
+            else if (action === 'interact') justPressed.add('interact');
+            else if (action === 'mount') justPressed.add('mount');
+            else if (action === 'map') justPressed.add('map');
+          }, { passive: false });
+          btn.addEventListener('touchmove', (e) => {
+            if (!editingTouchLayout || !dragBtnInfo || dragBtnInfo.action !== action) return;
+            e.preventDefault();
+            for (const t of e.changedTouches) if (t.identifier === dragBtnInfo.touchId) updateDraggedBtn(t.clientX, t.clientY);
+          }, { passive: false });
+          const endBtn = (e) => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+              if (dragBtnInfo && t.identifier === dragBtnInfo.touchId) { dragBtnInfo = null; saveSettings(); }
+              if (btnTouches.get(t.identifier) === action) {
+                btnTouches.delete(t.identifier); btn.classList.remove('pressed', 'charging');
+                if (action === 'light') releaseAttackPress(false);
+                if (action === 'parry') keys.delete('TouchGuard');
+              }
+            }
+          };
+          btn.addEventListener('touchend', endBtn, { passive: false });
+          btn.addEventListener('touchcancel', endBtn, { passive: false });
+          btn.addEventListener('mousedown', (e) => {
+            if (!editingTouchLayout) return;
+            e.preventDefault();
+            dragBtnInfo = { action, touchId: 'mouse', startX: e.clientX, startY: e.clientY, origRx: settings.btnPositions[action].rx, origBy: settings.btnPositions[action].by };
+          });
+        });
+        window.addEventListener('mousemove', (e) => { if (editingTouchLayout && dragBtnInfo?.touchId === 'mouse') updateDraggedBtn(e.clientX, e.clientY); });
+        window.addEventListener('mouseup', () => { if (dragBtnInfo?.touchId === 'mouse') { dragBtnInfo = null; saveSettings(); } });
+      }
+
+      // Đọc đầu vào mỗi frame (PC + Touch + Gamepad)
+      function pollFrame(dt) {
+        for (const [act, entry] of buffered) {
+          if (entry.frames > 0) entry.frames -= 1;
+          else if (nowSec() > entry.exp) buffered.delete(act);
+        }
+        const thresh = CONFIG.combat.heavyHoldThreshold;
+        const maxHold = thresh + CONFIG.combat.attacks.heavy.maxChargeTime;
+        if (attackHeld) {
+          attackHoldTime = Math.max(attackHoldTime + dt, nowSec() - attackPressSec);
+          if (attackHoldTime >= thresh) {
+            document.getElementById('tbtn-light')?.classList.add('charging');
+          }
+          if (attackHoldTime >= maxHold) {
+            releaseAttackPress(true);
+          }
+        }
+        let moveX = 0, moveZ = 0;
+        if (keys.has('KeyA')) moveX -= 1; if (keys.has('KeyD')) moveX += 1;
+        if (keys.has('KeyW')) moveZ -= 1; if (keys.has('KeyS')) moveZ += 1;
+        if (Math.hypot(joyVecX, joyVecY) > 0.08) { moveX += joyVecX; moveZ += joyVecY; }
+        let sprint = keys.has('ShiftLeft') || keys.has('ShiftRight') || joySprinting;
+        const guardHeld = keys.has('KeyF') || keys.has('TouchGuard');
+
+        if (keys.has('ArrowLeft')) camDeltaX -= CONFIG.camera.arrowTurnSpeed * dt;
+        if (keys.has('ArrowRight')) camDeltaX += CONFIG.camera.arrowTurnSpeed * dt;
+        if (keys.has('ArrowUp')) camDeltaY -= CONFIG.camera.arrowTurnSpeed * 0.7 * dt;
+        if (keys.has('ArrowDown')) camDeltaY += CONFIG.camera.arrowTurnSpeed * 0.7 * dt;
+
+        // Gamepad API chuẩn Soulslike (B = Roll/Sprint, RB = Nhấn/Giữ Đánh, LT/LB = Skill, R3 = Lock-on)
+        const pad = navigator.getGamepads?.()?.[0];
+        if (pad && document.body.dataset.state === 'playing') {
+          const lx = Math.abs(pad.axes[0]) > 0.16 ? pad.axes[0] : 0;
+          const ly = Math.abs(pad.axes[1]) > 0.16 ? pad.axes[1] : 0;
+          moveX += lx; moveZ += ly;
+          const rx = Math.abs(pad.axes[2]) > 0.16 ? pad.axes[2] : 0;
+          const ry = Math.abs(pad.axes[3]) > 0.16 ? pad.axes[3] : 0;
+          camDeltaX += rx * 2.5 * settings.camSens * dt;
+          camDeltaY += ry * 1.9 * settings.camSens * dt;
+          const bRoll = pad.buttons[1]?.pressed, bAtk = pad.buttons[5]?.pressed, bSkill = pad.buttons[6]?.pressed || pad.buttons[4]?.pressed, bLock = pad.buttons[11]?.pressed;
+          if (bRoll) sprint = true;
+          if (bRoll && !prevPadButtons[1]) queueBuffer('roll');
+          if (bAtk && !prevPadButtons[5]) startAttackPress();
+          if (!bAtk && prevPadButtons[5]) releaseAttackPress(false);
+          if (bSkill && !prevPadButtons[6]) queueBuffer('skill');
+          if (bLock && !prevPadButtons[11]) justPressed.add('lock');
+          prevPadButtons[1] = !!bRoll; prevPadButtons[5] = !!bAtk; prevPadButtons[6] = !!bSkill; prevPadButtons[11] = !!bLock;
+        }
+
+        const len = Math.hypot(moveX, moveZ);
+        if (len > 1) { moveX /= len; moveZ /= len; }
+        const lookX = camDeltaX, lookY = camDeltaY;
+        camDeltaX = 0; camDeltaY = 0;
+        const chargeVal = attackHeld ? Math.max(0, attackHoldTime - thresh) : heavyReleaseCharge;
+        return {
+          moveX, moveZ, moveMag: Math.min(len, 1), sprint, guardHeld, lookX, lookY,
+          heavyCharging: attackHeld && attackHoldTime >= thresh,
+          heavyChargeTime: chargeVal,
+        };
+      }
+
+      return { settings, saveSettings, applyTouchStyles, setTouchEditMode, init, pollFrame, queueBuffer, consumeBuffered, consumeHeavyCharge, hasBuffered, consumeJustPressed, clearAllHeld, vibrate };
+    })();
+
+    // =========================================================================
+    // 4. WORLD: Dựng bối cảnh Dark Fantasy, vật liệu PBR & Pool hạt
+    // =========================================================================
+    function detectSoftwareWebGL() {
+      const c = document.createElement('canvas');
+      const gl = c.getContext('webgl2') || c.getContext('webgl');
+      if (!gl) return true;
+      const ext = gl.getExtension('WEBGL_debug_renderer_info');
+      const gpu = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      return /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(gpu);
+    }
+
+    // =========================================================================
+    // 5. PLAYER: Mô hình Hiệp sĩ biến hóa theo 10 Class, Parry, Ngựa & Trang bị
+    // =========================================================================
+    function createPlayer(world, isSoftwareGl) {
+      const root = new THREE.Group();
+      const startX = CH1_CONFIG.playerStart.x, startZ = CH1_CONFIG.playerStart.z;
+      root.position.set(startX, getTerrainHeight(startX, startZ), startZ);
+      root.rotation.y = Math.PI;
+      world.scene.add(root);
+
+      const armorMat = new THREE.MeshStandardMaterial({ color: 0x62666e, roughness: 0.32, metalness: 0.82 });
+      const darkSteelMat = new THREE.MeshStandardMaterial({ color: 0x35373d, roughness: 0.44, metalness: 0.72 });
+      const cloakMat = new THREE.MeshStandardMaterial({ color: 0x3b1b1d, roughness: 0.9, metalness: 0.04 });
+      const brassMat = new THREE.MeshStandardMaterial({ color: 0xa4854c, roughness: 0.3, metalness: 0.85 });
+      const bladeMat = new THREE.MeshStandardMaterial({ color: 0xc9cdd4, roughness: 0.18, metalness: 0.94, emissive: 0x000000 });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x5c3e26, roughness: 0.82, metalness: 0.08 });
+      const orbMat = new THREE.MeshStandardMaterial({ color: 0x56c8ff, emissive: 0x2688d8, emissiveIntensity: 1.8, roughness: 0.2 });
+
+      const contactDisc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.68, 24),
+        new THREE.MeshBasicMaterial({ map: world.contactShadowTex, transparent: true, depthWrite: false, opacity: 0.7 })
+      );
+      contactDisc.rotation.x = -Math.PI / 2; contactDisc.position.y = 0.02; root.add(contactDisc);
+
+      const bodyPivot = new THREE.Group(); bodyPivot.position.y = 0.95; root.add(bodyPivot);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.64, 0.34), armorMat);
+      torso.position.y = 0.15; torso.castShadow = !isSoftwareGl; bodyPivot.add(torso);
+
+      const headGroup = new THREE.Group(); headGroup.position.set(0, 0.64, 0);
+      const helm = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.34, 10), armorMat); helm.castShadow = !isSoftwareGl;
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.14), darkSteelMat); visor.position.set(0, 0.02, 0.14);
+      const crest = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.28), brassMat); crest.position.set(0, 0.2, -0.02);
+      const hoodMesh = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.44, 8), cloakMat); hoodMesh.position.set(0, 0.06, -0.02);
+      const ironMask = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), darkSteelMat);
+      const kabutoCrest = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.024, 6, 12, Math.PI), brassMat);
+      kabutoCrest.position.set(0, 0.19, 0.14); kabutoCrest.rotation.z = Math.PI;
+      const blindfold = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.11, 10), brassMat); blindfold.position.y = 0.02;
+      headGroup.add(helm, visor, crest, hoodMesh, ironMask, kabutoCrest, blindfold); bodyPivot.add(headGroup);
+
+      const cloakPivot = new THREE.Group(); cloakPivot.position.set(0, 0.44, -0.18);
+      const cloak = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.95, 0.05), cloakMat);
+      cloak.position.set(0, -0.46, -0.02); cloak.castShadow = !isSoftwareGl;
+      const backSpear = new THREE.Group(); backSpear.position.set(0.05, -0.35, -0.08); backSpear.rotation.z = 0.45;
+      const bSpearShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.026, 1.85, 6), woodMat);
+      const bSpearTip = new THREE.Mesh(new THREE.ConeGeometry(0.065, 0.28, 6), bladeMat); bSpearTip.position.y = 1.02;
+      backSpear.add(bSpearShaft, bSpearTip);
+      const backBow = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.026, 6, 14, Math.PI * 1.05), woodMat);
+      backBow.position.set(-0.08, -0.25, -0.08); backBow.rotation.set(0, 0, -Math.PI * 0.4);
+      cloakPivot.add(cloak, backSpear, backBow); bodyPivot.add(cloakPivot);
+
+      const leftArmPivot = new THREE.Group(); leftArmPivot.position.set(-0.37, 0.38, 0);
+      const lPauldron = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), brassMat);
+      const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.56, 0.16), darkSteelMat); lArm.position.y = -0.26;
+      const shieldGroup = new THREE.Group();
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.72, 0.46), darkSteelMat);
+      shield.position.set(-0.12, -0.32, 0.14); shield.castShadow = !isSoftwareGl;
+      const shieldBoss = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.11, 8), brassMat);
+      shieldBoss.rotation.z = Math.PI / 2; shieldBoss.position.set(-0.14, -0.32, 0.14);
+      shieldGroup.add(shield, shieldBoss);
+
+      const offCurvedGroup = new THREE.Group(); offCurvedGroup.position.set(0, -0.52, 0.08); offCurvedGroup.rotation.x = Math.PI * 0.44;
+      const offBlade = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.08, 0.022), bladeMat); offBlade.position.y = 0.62; offBlade.rotation.z = -0.14;
+      const offGuard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.04, 0.06), brassMat); offGuard.position.y = 0.08;
+      offCurvedGroup.add(offBlade, offGuard);
+
+      const offStaffGroup = new THREE.Group(); offStaffGroup.position.set(0, -0.52, 0.08); offStaffGroup.rotation.x = Math.PI * 0.42;
+      const offStaffShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.03, 1.38, 8), woodMat); offStaffShaft.position.y = 0.62;
+      const offStaffOrb = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 0), orbMat); offStaffOrb.position.y = 1.36;
+      offStaffGroup.add(offStaffShaft, offStaffOrb);
+
+      const sealMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), new THREE.MeshStandardMaterial({ color: 0xffc660, emissive: 0xff8c20, emissiveIntensity: 1.7 }));
+      sealMesh.position.set(-0.08, -0.52, 0.16);
+      leftArmPivot.add(lPauldron, lArm, shieldGroup, offCurvedGroup, offStaffGroup, sealMesh); bodyPivot.add(leftArmPivot);
+
+      const rightArmPivot = new THREE.Group(); rightArmPivot.position.set(0.37, 0.38, 0);
+      const rPauldron = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), brassMat);
+      const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.56, 0.16), darkSteelMat); rArm.position.y = -0.26;
+      const swordGroup = new THREE.Group(); swordGroup.position.set(0, -0.52, 0.08); swordGroup.rotation.x = Math.PI * 0.46;
+      const hilt = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.036, 0.24, 8), darkSteelMat);
+      const guard = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.045, 0.07), brassMat); guard.position.y = 0.12;
+      const wSword = new THREE.Mesh(new THREE.BoxGeometry(0.075, 1.38, 0.025), bladeMat); wSword.position.y = 0.82; wSword.castShadow = !isSoftwareGl;
+      const wCurved = new THREE.Mesh(new THREE.BoxGeometry(0.085, 1.16, 0.024), bladeMat); wCurved.position.y = 0.7; wCurved.rotation.z = 0.14;
+      const wAxeGroup = new THREE.Group();
+      const wAxeShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 1.25, 8), woodMat); wAxeShaft.position.y = 0.55;
+      const wAxeHead = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.34, 0.045), bladeMat); wAxeHead.position.set(0.14, 1.02, 0);
+      wAxeGroup.add(wAxeShaft, wAxeHead);
+      const wDagger = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.68, 4), bladeMat); wDagger.position.y = 0.46;
+      const wStaffGroup = new THREE.Group();
+      const wStaffShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.032, 1.56, 8), woodMat); wStaffShaft.position.y = 0.7;
+      const wStaffOrb = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), orbMat); wStaffOrb.position.y = 1.54;
+      wStaffGroup.add(wStaffShaft, wStaffOrb);
+      const wSpearGroup = new THREE.Group();
+      const wSpearShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.028, 1.8, 8), woodMat); wSpearShaft.position.y = 0.72;
+      const wSpearHead = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.34, 6), bladeMat); wSpearHead.position.y = 1.72;
+      wSpearGroup.add(wSpearShaft, wSpearHead);
+      const wKatana = new THREE.Mesh(new THREE.BoxGeometry(0.042, 1.58, 0.02), bladeMat); wKatana.position.y = 0.92; wKatana.rotation.z = 0.04;
+      const wRapier = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.028, 1.44, 6), bladeMat); wRapier.position.y = 0.84;
+      const wClub = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.04, 1.15, 8), woodMat); wClub.position.y = 0.54;
+      swordGroup.add(hilt, guard, wSword, wCurved, wAxeGroup, wDagger, wStaffGroup, wSpearGroup, wKatana, wRapier, wClub);
+      rightArmPivot.add(rPauldron, rArm, swordGroup); bodyPivot.add(rightArmPivot);
+
+      const slashArcMat = new THREE.MeshBasicMaterial({ color: 0xf4dca8, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+      const slashArc = new THREE.Mesh(new THREE.RingGeometry(1.05, 1.92, 20, 1, -0.8, 2.2), slashArcMat);
+      slashArc.rotation.x = -Math.PI / 2; slashArc.position.set(0, 1.05, 0.45); root.add(slashArc);
+
+      const leftLegPivot = new THREE.Group(); leftLegPivot.position.set(-0.16, -0.16, 0);
+      const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.76, 0.21), darkSteelMat); lLeg.position.y = -0.38; lLeg.castShadow = !isSoftwareGl;
+      leftLegPivot.add(lLeg); bodyPivot.add(leftLegPivot);
+
+      const rightLegPivot = new THREE.Group(); rightLegPivot.position.set(0.16, -0.16, 0);
+      const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.76, 0.21), darkSteelMat); rLeg.position.y = -0.38; rLeg.castShadow = !isSoftwareGl;
+      rightLegPivot.add(rLeg); bodyPivot.add(rightLegPivot);
+
+      const state = {
+        classSpec: CLASSES[0], dropSpareSpear: false, levelBonus: 0,
+        hp: CONFIG.stats.maxHp, maxHp: CONFIG.stats.maxHp,
+        fp: CONFIG.stats.maxFp, maxFp: CONFIG.stats.maxFp,
+        stamina: CONFIG.stats.maxStamina, maxStamina: CONFIG.stats.maxStamina,
+        staminaDelayTimer: 0, staminaExhaustedFlash: 0, flasks: 4, runes: 0,
+        stealthTimer: 0, parryWindowTimer: 0, guarding: false, guardBreakTimer: 0,
+        mounted: false, hasReinsUpgrade: false, inkSlowTimer: 0, chalkBuffTimer: 0,
+        bonusDmg: 0, bonusBleed: 0, armorDefMult: 1.0, bonusMaxStam: 0,
+        useInkSpell: false, rottingSkillUnlocked: false,
+        action: 'idle', actionTimer: 0, actionDuration: 0, invulnTimer: 0,
+        rollDir: new THREE.Vector3(0, 0, -1), rollEndWindow: false, walkDist: 0, nextStepDist: 2.0,
+        attackKey: null, attackSpec: null, attackPhase: 'none', comboIndex: 0, chargeBonus: 1.0,
+        hitTargets: new Set(), velX: 0, velZ: 0,
+      };
+
+      function recomputeCaps(refill = false) {
+        const st = state.classSpec.stats;
+        state.maxHp = Math.round(310 + st.vig * 15 + state.levelBonus * 26);
+        state.maxFp = Math.round(60 + st.mnd * 7 + state.levelBonus * 10);
+        state.maxStamina = Math.round(92 + st.end * 4.5 + state.levelBonus * 6 + state.bonusMaxStam);
+        if (refill) {
+          state.hp = state.maxHp; state.fp = state.maxFp; state.stamina = state.maxStamina; state.flasks = 4;
+        } else {
+          state.hp = Math.min(state.hp, state.maxHp);
+          state.fp = Math.min(state.fp, state.maxFp);
+          state.stamina = Math.min(state.stamina, state.maxStamina);
+        }
+      }
+
+      function applyClass(cls, dropSpareSpear = false) {
+        state.classSpec = cls;
+        state.dropSpareSpear = !!dropSpareSpear;
+        state.stealthTimer = 0;
+        recomputeCaps(true);
+
+        CONFIG.stats.heavyLoad = (cls.id === 'vagabond') ? !state.dropSpareSpear : false;
+
+        armorMat.color.setHex(cls.armorCol);
+        brassMat.color.setHex(cls.trimCol);
+        cloakMat.color.setHex(cls.cloakCol);
+        slashArcMat.color.setHex(cls.skill.color || 0xf4dca8);
+
+        wSword.visible = cls.weaponType === 'sword';
+        wCurved.visible = cls.weaponType === 'curved';
+        wAxeGroup.visible = cls.weaponType === 'axe';
+        wDagger.visible = cls.weaponType === 'dagger';
+        wStaffGroup.visible = cls.weaponType === 'staff';
+        wSpearGroup.visible = cls.weaponType === 'spear';
+        wKatana.visible = cls.weaponType === 'katana';
+        wRapier.visible = cls.weaponType === 'rapier';
+        wClub.visible = cls.weaponType === 'club';
+        guard.visible = cls.weaponType === 'sword' || cls.weaponType === 'katana' || cls.weaponType === 'rapier' || cls.weaponType === 'curved' || cls.weaponType === 'dagger';
+
+        shieldGroup.visible = cls.offhand === 'shield' || cls.offhand === 'buckler';
+        shieldGroup.scale.setScalar(cls.offhand === 'buckler' ? 0.68 : 1.0);
+        offCurvedGroup.visible = cls.offhand === 'curved';
+        offStaffGroup.visible = cls.offhand === 'staff_off';
+        sealMesh.visible = cls.offhand === 'seal';
+
+        backSpear.visible = cls.id === 'vagabond' && !state.dropSpareSpear;
+        backBow.visible = !!cls.hasBow;
+        cloak.visible = cls.id !== 'wretch';
+
+        helm.visible = cls.helmType === 'knight' || cls.helmType === 'kabuto' || cls.helmType === 'bandana' || cls.helmType === 'turban';
+        visor.visible = cls.helmType === 'knight';
+        crest.visible = cls.helmType === 'knight';
+        hoodMesh.visible = cls.helmType === 'hood' || cls.helmType === 'magehood';
+        ironMask.visible = cls.helmType === 'ironmask';
+        kabutoCrest.visible = cls.helmType === 'kabuto';
+        blindfold.visible = cls.helmType === 'blindfold';
+        resetPose();
+      }
+
+      function getBladeWorldSegment(outBase, outTip) {
+        swordGroup.updateMatrixWorld(true);
+        outBase.set(0, 0.2, 0).applyMatrix4(swordGroup.matrixWorld);
+        const reach = state.classSpec.weaponType === 'dagger' ? 1.05 : (state.classSpec.weaponType === 'spear' || state.classSpec.weaponType === 'katana' ? 1.85 : 1.55);
+        outTip.set(0, reach, 0).applyMatrix4(swordGroup.matrixWorld);
+      }
+      function resetPose() {
+        bodyPivot.position.set(0, 0.95, 0); bodyPivot.rotation.set(0, 0, 0); bodyPivot.scale.set(1, 1, 1);
+        rightArmPivot.rotation.set(-0.24, 0.08, -0.18); leftArmPivot.rotation.set(-0.14, -0.12, 0.12);
+        leftLegPivot.rotation.set(0, 0, 0); rightLegPivot.rotation.set(0, 0, 0);
+        swordGroup.rotation.set(Math.PI * 0.38, 0, -0.12);
+        slashArcMat.opacity = 0; bladeMat.emissive.setHex(0x000000);
+      }
+      applyClass(CLASSES[0], false);
+
+      function drainStamina(amount) {
+        state.stamina = Math.max(0, state.stamina - amount);
+        state.staminaDelayTimer = CONFIG.stats.staminaRegenDelay;
+      }
+
+      function startRoll(dirX, dirZ) {
+        if (state.stamina <= 0) { state.staminaExhaustedFlash = 0.25; return false; }
+        if (Math.hypot(dirX, dirZ) <= 0.1) {
+          drainStamina(CONFIG.dodge.backstepStaminaCost);
+          state.action = 'backstep'; state.actionTimer = 0; state.actionDuration = CONFIG.dodge.backstepDuration;
+          state.invulnTimer = 0.14;
+          state.rollDir.set(-Math.sin(root.rotation.y), 0, -Math.cos(root.rotation.y)).normalize();
+          AudioSys.playRoll(false);
+          return true;
+        }
+        const heavy = CONFIG.stats.heavyLoad;
+        drainStamina(CONFIG.dodge.rollStaminaCost);
+        state.action = 'roll'; state.actionTimer = 0;
+        state.actionDuration = heavy ? CONFIG.dodge.heavyDuration : CONFIG.dodge.lightDuration;
+        state.invulnTimer = heavy ? CONFIG.dodge.heavyIFrames : CONFIG.dodge.lightIFrames;
+        state.rollDir.set(dirX, 0, dirZ).normalize();
+        root.rotation.y = Math.atan2(state.rollDir.x, state.rollDir.z);
+        AudioSys.playRoll(heavy);
+        return true;
+      }
+
+      function startAttack(key, chargeMult = 1.0) {
+        const spec = CONFIG.combat.attacks[key];
+        if (!spec) return false;
+        const sk = state.classSpec.skill;
+        const stamCost = key === 'skill' ? sk.stamCost : spec.stamina;
+        // Đòn đánh thường (usesStamina: false) KHÔNG kiểm tra hoặc trừ stamina!
+        if (spec.usesStamina) {
+          if (state.stamina <= 0) { state.staminaExhaustedFlash = 0.25; return false; }
+          if (key === 'skill' && state.fp < sk.fpCost) { AudioSys.playUiClick(); return false; }
+          if (key === 'skill') state.fp = Math.max(0, state.fp - sk.fpCost);
+          drainStamina(stamCost);
+        }
+        const spd = key === 'skill' ? 1.0 : (state.classSpec.speedMult || 1.0);
+        state.action = 'attack'; state.attackKey = key; state.attackSpec = spec;
+        state.actionTimer = 0; state.actionDuration = (spec.windup + spec.active + spec.recovery) / spd;
+        state.attackPhase = 'windup'; state.chargeBonus = chargeMult; state.hitTargets.clear();
+        return true;
+      }
+
+      function distPointToSegmentSq(px, py, pz, ax, ay, az, bx, by, bz) {
+        const abx = bx - ax, aby = by - ay, abz = bz - az;
+        const apx = px - ax, apy = py - ay, apz = pz - az;
+        const abLenSq = abx * abx + aby * aby + abz * abz;
+        const t = abLenSq > 1e-6 ? Math.max(0, Math.min(1, (apx * abx + apy * aby + apz * abz) / abLenSq)) : 0;
+        const cx = ax + abx * t - px, cy = ay + aby * t - py, cz = az + abz * t - pz;
+        return cx * cx + cy * cy + cz * cz;
+      }
+
+      function animateAttackWindup(key, wp) {
+        if (key === 'light1' || key === 'rolling') {
+          bodyPivot.rotation.set(0.1, -0.65 * wp, 0); rightArmPivot.rotation.set(-0.4 * wp, -0.8 * wp, -0.9 * wp);
+        } else if (key === 'light2') {
+          bodyPivot.rotation.set(0.1, 0.7 * wp, 0); rightArmPivot.rotation.set(-0.3 * wp, 0.9 * wp, 0.6 * wp);
+          if (offCurvedGroup.visible) leftArmPivot.rotation.set(-0.5 * wp, -0.8 * wp, 0.5 * wp);
+        } else if (key === 'light3') {
+          bodyPivot.rotation.set(-0.15 * wp, 0, 0); rightArmPivot.rotation.set(-2.2 * wp, 0, -0.2 * wp);
+        } else if (key === 'skill') {
+          bodyPivot.rotation.set(-0.22 * wp, -0.9 * wp, 0);
+          rightArmPivot.rotation.set(-1.5 * wp, -0.5 * wp, -0.6 * wp);
+          leftArmPivot.rotation.set(-0.9 * wp, 0.2 * wp, 0.4 * wp);
+          bladeMat.emissive.setHex(state.classSpec.skill.color || 0xc9a66b);
+        } else {
+          bodyPivot.rotation.set(0.18 * wp, -0.75 * wp, 0); rightArmPivot.rotation.set(-0.7 * wp, -0.4 * wp, -0.4 * wp);
+          swordGroup.rotation.x = Math.PI * (0.46 + 0.35 * wp);
+        }
+      }
+      function animateAttackActive(key, ap) {
+        slashArcMat.opacity = 0.56 * (1 - ap * 0.3);
+        if (key === 'light1' || key === 'rolling') {
+          bodyPivot.rotation.set(0.18, -0.65 + 1.45 * ap, 0); rightArmPivot.rotation.set(-1.1, -0.8 + 2.1 * ap, -0.9 + 1.5 * ap);
+          slashArc.rotation.z = -0.5 + ap * 1.4;
+        } else if (key === 'light2') {
+          bodyPivot.rotation.set(0.16, 0.7 - 1.45 * ap, 0); rightArmPivot.rotation.set(-1.1, 0.9 - 2.1 * ap, 0.6 - 1.5 * ap);
+          if (offCurvedGroup.visible) leftArmPivot.rotation.set(-1.0, -0.8 + 1.9 * ap, 0.5 - 1.2 * ap);
+          slashArc.rotation.z = 1.2 - ap * 1.4;
+        } else if (key === 'light3') {
+          bodyPivot.rotation.set(-0.15 + 0.45 * ap, 0, 0); rightArmPivot.rotation.set(-2.2 + 2.7 * ap, 0, 0);
+          slashArc.rotation.z = 0.3;
+        } else if (key === 'skill') {
+          const kind = state.classSpec.skill.kind;
+          if (kind === 'spin') {
+            bodyPivot.rotation.set(0.12, ap * Math.PI * 2, 0);
+            rightArmPivot.rotation.set(-1.2, 0.6, 1.1); leftArmPivot.rotation.set(-1.2, -0.6, -1.1);
+            slashArc.rotation.z = ap * Math.PI * 2;
+          } else {
+            bodyPivot.rotation.set(0.24, -0.9 + 1.6 * ap, 0);
+            rightArmPivot.rotation.set(-1.6 + 2.1 * ap, 0.2, 0.2);
+            slashArc.rotation.z = -0.3 + ap * 1.8;
+          }
+        } else {
+          bodyPivot.rotation.set(0.28, -0.75 + 0.85 * ap, 0); rightArmPivot.rotation.set(-1.45, 0.1, 0);
+          swordGroup.rotation.x = Math.PI * 0.88; slashArc.rotation.z = 0.2;
+        }
+      }
+      function animateAttackRecovery(key, rp) {
+        const s = 1 - rp;
+        bodyPivot.rotation.x *= s; bodyPivot.rotation.y *= s;
+        rightArmPivot.rotation.x *= s; rightArmPivot.rotation.y *= s; rightArmPivot.rotation.z *= s;
+        leftArmPivot.rotation.x *= s; leftArmPivot.rotation.y *= s; leftArmPivot.rotation.z *= s;
+        swordGroup.rotation.x = THREE.MathUtils.lerp(swordGroup.rotation.x, Math.PI * 0.46, 0.18);
+      }
+
+      function update(dt, input, cameraYaw, lockTarget, targets, worldRef, combatFeedback, projectiles, bossActive = false) {
+        if (state.staminaExhaustedFlash > 0) state.staminaExhaustedFlash = Math.max(0, state.staminaExhaustedFlash - dt);
+        if (state.invulnTimer > 0) state.invulnTimer = Math.max(0, state.invulnTimer - dt);
+        if (state.stealthTimer > 0) state.stealthTimer = Math.max(0, state.stealthTimer - dt);
+        if (state.parryWindowTimer > 0) state.parryWindowTimer = Math.max(0, state.parryWindowTimer - dt);
+        if (state.guardBreakTimer > 0) state.guardBreakTimer = Math.max(0, state.guardBreakTimer - dt);
+        if (state.inkSlowTimer > 0) state.inkSlowTimer = Math.max(0, state.inkSlowTimer - dt);
+        if (state.chalkBuffTimer > 0) state.chalkBuffTimer = Math.max(0, state.chalkBuffTimer - dt);
+
+        if (InputSys.consumeJustPressed('parry') && state.action === 'idle' && state.guardBreakTimer <= 0 && !state.mounted) {
+          state.parryWindowTimer = 0.22;
+          leftArmPivot.rotation.set(-1.35, 0.55, 0.35);
+          AudioSys.playSwing(false, 1.3);
+        }
+        state.guarding = !!(input.guardHeld && state.action === 'idle' && state.guardBreakTimer <= 0 && !state.mounted && state.stamina > 2);
+
+        // Hồi Stamina mọi lúc TRỪ khi đang chạy nước rút, đang lăn/bước lùi, đỡ đòn, hoặc tung đòn Heavy/Skill
+        const spendingStam = (input.sprint && input.moveMag > 0.1) || state.guarding || state.action === 'roll' || state.action === 'backstep' || (state.action === 'attack' && !!state.attackSpec?.usesStamina);
+        if (!spendingStam) {
+          if (state.staminaDelayTimer > 0) state.staminaDelayTimer -= dt;
+          else {
+            const regenMult = state.chalkBuffTimer > 0 ? 1.55 : 1.0;
+            state.stamina = Math.min(state.maxStamina, state.stamina + CONFIG.stats.staminaRegenPerSec * regenMult * dt);
+          }
+        }
+
+        const sinY = Math.sin(cameraYaw), cosY = Math.cos(cameraYaw);
+        const worldMoveX = -sinY * (-input.moveZ) + cosY * input.moveX;
+        const worldMoveZ = -cosY * (-input.moveZ) - sinY * input.moveX;
+        const moveLen = Math.hypot(worldMoveX, worldMoveZ);
+        const dirX = moveLen > 0.01 ? worldMoveX / moveLen : 0, dirZ = moveLen > 0.01 ? worldMoveZ / moveLen : 0;
+
+        if (InputSys.consumeJustPressed('flask') && state.action === 'idle' && state.flasks > 0 && state.hp < state.maxHp) {
+          state.flasks -= 1;
+          state.hp = Math.min(state.maxHp, state.hp + Math.round(state.maxHp * 0.48));
+          worldRef.spawnSparks(root.position.x, root.position.y + 1.1, root.position.z, 18, 4.5, 0xe84848);
+          AudioSys.playLockOn();
+        }
+
+        // Input Buffer & hủy đòn cuối recovery
+        if (state.guardBreakTimer > 0) {
+          state.velX = 0; state.velZ = 0;
+          bodyPivot.rotation.set(0.32, 0, 0);
+        } else if (state.action === 'idle') {
+          if (InputSys.consumeBuffered('roll')) {
+            if (state.mounted) state.mounted = false;
+            startRoll(dirX, dirZ);
+          } else if (InputSys.consumeBuffered('skill')) {
+            if (state.mounted) state.mounted = false;
+            startAttack('skill', 1.0);
+          } else if (InputSys.consumeBuffered('heavy')) {
+            if (state.mounted) state.mounted = false;
+            const ct = Math.min(InputSys.consumeHeavyCharge(), CONFIG.combat.attacks.heavy.maxChargeTime);
+            const ratio = ct / CONFIG.combat.attacks.heavy.maxChargeTime;
+            startAttack('heavy', 1 + (CONFIG.combat.attacks.heavy.maxChargeMult - 1) * ratio);
+          } else if (InputSys.consumeBuffered('light')) {
+            if (state.mounted) state.mounted = false;
+            if (state.rollEndWindow) { state.comboIndex = 1; startAttack('rolling'); }
+            else if (input.sprint && moveLen > 0.2 && state.stamina > 2) { state.comboIndex = 1; startAttack('running'); }
+            else {
+              const chain = ['light1', 'light2', 'light3'];
+              startAttack(chain[state.comboIndex % 3]);
+              state.comboIndex = (state.comboIndex + 1) % 3;
+            }
+          }
+        } else if (state.action === 'attack' && (state.actionTimer / state.actionDuration) >= state.attackSpec.cancelAt) {
+          if (InputSys.consumeBuffered('roll')) { state.comboIndex = 0; startRoll(dirX, dirZ); }
+          else if (InputSys.consumeBuffered('skill')) { state.comboIndex = 0; startAttack('skill', 1.0); }
+          else if (InputSys.consumeBuffered('light')) {
+            const chain = ['light1', 'light2', 'light3'];
+            startAttack(chain[state.comboIndex % 3]);
+            state.comboIndex = (state.comboIndex + 1) % 3;
+          } else if (InputSys.consumeBuffered('heavy')) {
+            const ct = Math.min(InputSys.consumeHeavyCharge(), CONFIG.combat.attacks.heavy.maxChargeTime);
+            const ratio = ct / CONFIG.combat.attacks.heavy.maxChargeTime;
+            state.comboIndex = 0; startAttack('heavy', 1 + (CONFIG.combat.attacks.heavy.maxChargeMult - 1) * ratio);
+          }
+        } else if (state.action === 'roll' && state.actionTimer / state.actionDuration > 0.78 && InputSys.consumeBuffered('light')) {
+          startAttack('rolling');
+        }
+
+        state.rollEndWindow = false;
+        if (state.guardBreakTimer > 0) {
+          // Chờ hồi guard break
+        } else if (state.action === 'roll') {
+          state.actionTimer += dt;
+          const p = Math.min(1, state.actionTimer / state.actionDuration), heavy = CONFIG.stats.heavyLoad;
+          const baseSpd = heavy ? CONFIG.dodge.heavySpeed : CONFIG.dodge.lightSpeed;
+          const curve = heavy ? (p < 0.55 ? 1.0 : 0.28) : (1.0 - p * 0.45);
+          state.velX = state.rollDir.x * baseSpd * curve; state.velZ = state.rollDir.z * baseSpd * curve;
+          bodyPivot.rotation.x = p * Math.PI * 2; bodyPivot.position.y = 0.62 + Math.sin(p * Math.PI) * 0.16;
+          bodyPivot.scale.set(1.08, 0.82, 1.08); slashArcMat.opacity = 0;
+          if (p >= 1) { state.action = 'idle'; state.rollEndWindow = true; resetPose(); }
+        } else if (state.action === 'backstep') {
+          state.actionTimer += dt;
+          const p = Math.min(1, state.actionTimer / state.actionDuration), curve = Math.sin((1 - p) * Math.PI * 0.5);
+          state.velX = state.rollDir.x * CONFIG.dodge.backstepSpeed * curve; state.velZ = state.rollDir.z * CONFIG.dodge.backstepSpeed * curve;
+          bodyPivot.position.y = 0.95 + Math.sin(p * Math.PI) * 0.25; bodyPivot.rotation.x = -0.18;
+          if (p >= 1) { state.action = 'idle'; resetPose(); }
+        } else if (state.action === 'attack') {
+          const spd = state.attackKey === 'skill' ? 1.0 : (state.classSpec.speedMult || 1.0);
+          state.actionTimer += dt;
+          const spec = state.attackSpec, t = state.actionTimer * spd;
+          const windupEnd = spec.windup, activeEnd = spec.windup + spec.active;
+          if (t < windupEnd * 0.95) {
+            if (lockTarget) root.rotation.y = dampAngle(root.rotation.y, Math.atan2(lockTarget.pos.x - root.position.x, lockTarget.pos.z - root.position.z), 18, dt);
+            else if (moveLen > 0.15) root.rotation.y = dampAngle(root.rotation.y, Math.atan2(dirX, dirZ), 16, dt);
+          }
+          const fX = Math.sin(root.rotation.y), fZ = Math.cos(root.rotation.y);
+          if (t < windupEnd) {
+            state.attackPhase = 'windup';
+            state.velX = fX * spec.lungeSpeed * 0.25; state.velZ = fZ * spec.lungeSpeed * 0.25;
+            animateAttackWindup(state.attackKey, t / spec.windup); slashArcMat.opacity = 0;
+          } else if (t < activeEnd) {
+            if (state.attackPhase !== 'active') {
+              state.attackPhase = 'active';
+              AudioSys.playSwing(state.attackKey === 'heavy' || state.attackKey === 'light3' || state.attackKey === 'skill', 0.95 + Math.random() * 0.12);
+              if (state.attackKey === 'skill') {
+                const sk = state.classSpec.skill;
+                if (state.useInkSpell) {
+                  // Phép Mũi Tên Mực Loãng bắn 3 tia xuyên thấu
+                  let baseYaw = root.rotation.y;
+                  if (lockTarget) baseYaw = Math.atan2(lockTarget.pos.x - root.position.x, lockTarget.pos.z - root.position.z);
+                  for (const off of [-0.16, 0, 0.16]) {
+                    const a = baseYaw + off;
+                    projectiles.spawn(root.position.x + Math.sin(a) * 0.7, root.position.y + 1.25, root.position.z + Math.cos(a) * 0.7, Math.sin(a), 0, Math.cos(a), { projType: 'glint', dmg: 85, poiseDmg: 18, bleed: 0, color: 0x3ec29e });
+                  }
+                } else {
+                  if (sk.heal > 0) {
+                    state.hp = Math.min(state.maxHp, state.hp + sk.heal);
+                    worldRef.spawnSparks(root.position.x, root.position.y + 1.2, root.position.z, 22, 5.5, sk.color);
+                  }
+                  if (sk.kind === 'heal_stealth') {
+                    state.stealthTimer = 6.0;
+                    combatFeedback.onSkillNotice('Thánh Ảnh Che Phủ (+22% Sát thương)');
+                  }
+                  if (sk.kind === 'projectile' || sk.kind === 'heal_flame') {
+                    let aimX = fX, aimY = 0, aimZ = fZ;
+                    if (lockTarget) {
+                      const dx = lockTarget.pos.x - root.position.x, dy = (lockTarget.pos.y + 1.1) - (root.position.y + 1.25), dz = lockTarget.pos.z - root.position.z;
+                      const d = Math.hypot(dx, dy, dz) || 1;
+                      aimX = dx / d; aimY = dy / d; aimZ = dz / d;
+                    }
+                    projectiles.spawn(root.position.x + fX * 0.7, root.position.y + 1.22, root.position.z + fZ * 0.7, aimX, aimY, aimZ, sk);
+                  }
+                  if (sk.kind === 'slam' || state.rottingSkillUnlocked) {
+                    worldRef.spawnSparks(root.position.x + fX * 1.4, root.position.y + 0.3, root.position.z + fZ * 1.4, 24, 9.0, state.rottingSkillUnlocked ? 0xd8f09c : sk.color);
+                  }
+                }
+              }
+            }
+            const ap = (t - spec.windup) / spec.active;
+            state.velX = fX * spec.lungeSpeed * (1 - ap * 0.4); state.velZ = fZ * spec.lungeSpeed * (1 - ap * 0.4);
+            animateAttackActive(state.attackKey, ap);
+            const isProjSkill = state.attackKey === 'skill' && (state.useInkSpell || state.classSpec.skill.kind === 'projectile' || state.classSpec.skill.kind === 'heal_stealth' || state.classSpec.skill.kind === 'heal_flame');
+            if (!isProjSkill) {
+              getBladeWorldSegment(_v1, _v2);
+              const extraR = state.attackKey === 'skill' ? 0.65 : 0;
+              for (const tgt of targets) {
+                if (tgt.dead || state.hitTargets.has(tgt.id)) continue;
+                const hitR = tgt.hurtRadius + CONFIG.combat.weaponRadius + extraR;
+                if (distPointToSegmentSq(tgt.pos.x, tgt.pos.y + 1.1, tgt.pos.z, _v1.x, _v1.y, _v1.z, _v2.x, _v2.y, _v2.z) <= hitR * hitR) {
+                  state.hitTargets.add(tgt.id);
+                  const sk = state.classSpec.skill;
+                  const stealthMult = state.stealthTimer > 0 ? 1.22 : 1.0;
+                  const riposte = tgt.aiState === 'staggered_riposte';
+                  const riposteMult = riposte ? CH1_CONFIG.boss.rottingOne.riposteMult : 1.0;
+                  const rottingMult = (state.attackKey === 'skill' && state.rottingSkillUnlocked) ? 1.25 : 1.0;
+                  const baseDmg = state.attackKey === 'skill' ? (sk.dmg + state.bonusDmg) : ((spec.dmg + state.bonusDmg) * (state.classSpec.dmgMult || 1.0));
+                  const finalDmg = Math.round(baseDmg * state.chargeBonus * stealthMult * riposteMult * rottingMult);
+                  const poiseDmg = (state.attackKey === 'skill' ? sk.poiseDmg : spec.poiseDmg) * state.chargeBonus;
+                  const bleedAdd = (state.attackKey === 'skill' ? (sk.bleed || 0) : (state.classSpec.bleed || 0)) + state.bonusBleed;
+                  const isHeavyHit = riposte || state.attackKey === 'heavy' || state.attackKey === 'light3' || state.attackKey === 'skill' || state.chargeBonus > 1.2;
+                  if (riposte) tgt.aiState = 'recover';
+                  combatFeedback.onPlayerHitTarget(tgt, finalDmg, poiseDmg, riposte ? 0.12 : spec.hitStop, riposte ? 0.48 : spec.shake, isHeavyHit, _v2, bleedAdd, riposte ? 0xff4c4c : 0xffc864, riposte);
+                }
+              }
+            }
+          } else {
+            state.attackPhase = 'recovery';
+            const rp = Math.min(1, (t - activeEnd) / spec.recovery);
+            state.velX = fX * spec.lungeSpeed * 0.12 * (1 - rp); state.velZ = fZ * spec.lungeSpeed * 0.12 * (1 - rp);
+            animateAttackRecovery(state.attackKey, rp); slashArcMat.opacity = Math.max(0, 0.35 * (1 - rp * 2.2));
+          }
+          if (state.actionTimer >= state.actionDuration) { state.action = 'idle'; state.attackPhase = 'none'; resetPose(); }
+        } else {
+          if (state.actionTimer > 0.65) state.comboIndex = 0;
+          state.actionTimer += dt;
+          const canSprint = input.sprint && moveLen > 0.15 && state.stamina > 2;
+          if (canSprint) { drainStamina(CONFIG.movement.sprintStaminaPerSec * dt); state.staminaDelayTimer = CONFIG.stats.staminaRegenDelay; }
+
+          const inSwamp = state.chalkBuffTimer <= 0 && (isInInkSwamp(root.position.x, root.position.z) || state.inkSlowTimer > 0);
+          const swampMult = inSwamp ? CH1_CONFIG.world.inkSwampSpeedMult : 1.0;
+          const mountMult = state.mounted ? (canSprint ? CH1_CONFIG.mount.sprintMult : CH1_CONFIG.mount.speedMult) * (state.hasReinsUpgrade ? 1.18 : 1.0) : 1.0;
+
+          let speed = 0;
+          if (moveLen > 0.05) {
+            if (canSprint) speed = CONFIG.movement.sprintSpeed;
+            else if (lockTarget && !state.mounted) speed = CONFIG.movement.strafeSpeed;
+            else speed = moveLen > 0.68 ? CONFIG.movement.runSpeed : CONFIG.movement.walkSpeed;
+            speed *= swampMult * mountMult * (state.guarding ? 0.55 : 1.0);
+          }
+          const damp = 1 - Math.exp(-16 * dt);
+          state.velX = THREE.MathUtils.lerp(state.velX, dirX * speed, damp);
+          state.velZ = THREE.MathUtils.lerp(state.velZ, dirZ * speed, damp);
+
+          if (lockTarget && !canSprint && !state.mounted) root.rotation.y = dampAngle(root.rotation.y, Math.atan2(lockTarget.pos.x - root.position.x, lockTarget.pos.z - root.position.z), CONFIG.movement.turnSpeed, dt);
+          else if (moveLen > 0.08) root.rotation.y = dampAngle(root.rotation.y, Math.atan2(dirX, dirZ), state.mounted ? CH1_CONFIG.mount.turnSpeed : CONFIG.movement.turnSpeed, dt);
+
+          const horizSpd = Math.hypot(state.velX, state.velZ);
+          state.walkDist += horizSpd * dt;
+          if (state.walkDist >= state.nextStepDist) {
+            state.nextStepDist = state.walkDist + (canSprint || state.mounted ? 1.7 : 2.1);
+            AudioSys.playFootstep(getSurfaceType(root.position.x, root.position.z, root.position.y));
+          }
+
+          if (input.heavyCharging) {
+            const cRatio = Math.min(1, 0.28 + (input.heavyChargeTime / CONFIG.combat.attacks.heavy.maxChargeTime) * 0.72);
+            bodyPivot.rotation.set(0.16, -0.55 - cRatio * 0.35, 0); bodyPivot.position.y = 0.88 - cRatio * 0.06;
+            rightArmPivot.rotation.set(-0.6 - cRatio * 0.5, -0.6, -0.3);
+            bladeMat.emissive.setRGB(0.65 * cRatio, 0.35 * cRatio, 0.08 * cRatio);
+          } else if (state.parryWindowTimer > 0) {
+            leftArmPivot.rotation.set(-1.35, 0.55, 0.35);
+          } else if (state.guarding) {
+            leftArmPivot.rotation.set(-0.85, 0.52, 0.28);
+            bodyPivot.position.y = 0.9;
+          } else {
+            bladeMat.emissive.setHex(state.stealthTimer > 0 ? 0x262030 : 0x000000);
+            const stride = Math.sin(state.walkDist * 2.2) * Math.min(1, horizSpd / 4.2);
+            leftLegPivot.rotation.x = state.mounted ? 0.45 : stride * 0.58;
+            rightLegPivot.rotation.x = state.mounted ? 0.45 : -stride * 0.58;
+            leftArmPivot.rotation.set(-0.14 - stride * 0.28, -0.12, 0.12);
+            rightArmPivot.rotation.set(-0.24 + stride * 0.32, 0.08, -0.18);
+            swordGroup.rotation.set(Math.PI * 0.38, 0, -0.12);
+            bodyPivot.position.y = (state.mounted ? 1.82 : 0.95) + Math.abs(Math.sin(state.walkDist * 2.2)) * 0.04 * Math.min(1, horizSpd / 4);
+            bodyPivot.rotation.x = canSprint ? 0.24 : (horizSpd > 0.5 ? 0.08 : 0); bodyPivot.rotation.y = 0;
+            cloakPivot.rotation.x = 0.08 + Math.min(0.65, horizSpd * 0.075) + Math.sin(performance.now() * 0.004) * 0.04;
+          }
+          slashArcMat.opacity = 0;
+        }
+
+        root.position.x += state.velX * dt; root.position.z += state.velZ * dt;
+        worldRef.resolveMove(root.position, 0.55, bossActive);
+      }
+
+      return { root, state, update, getBladeWorldSegment, applyClass, recomputeCaps, resetPose };
+    }
+
+    function createProjectiles(world) {
+      const list = [];
+      const orbGeo = new THREE.OctahedronGeometry(0.16, 1);
+      const arrowGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.9, 6);
+      arrowGeo.rotateX(Math.PI / 2);
+
+      function spawn(x, y, z, dx, dy, dz, sk) {
+        const isArrow = sk.projType === 'arrow';
+        const mat = new THREE.MeshBasicMaterial({ color: sk.color || 0x55d0ff });
+        const mesh = new THREE.Mesh(isArrow ? arrowGeo : orbGeo, mat);
+        mesh.position.set(x, y, z);
+        if (isArrow) mesh.lookAt(x + dx, y + dy, z + dz);
+        world.scene.add(mesh);
+        list.push({
+          mesh, mat, life: 1.5, vx: dx * 21, vy: dy * 21, vz: dz * 21,
+          dmg: sk.dmg, poiseDmg: sk.poiseDmg, bleed: sk.bleed || 0, color: sk.color || 0x55d0ff,
+        });
+      }
+      function update(dt, targets, combatFeedback) {
+        for (let i = list.length - 1; i >= 0; i--) {
+          const p = list[i];
+          p.life -= dt;
+          p.mesh.position.x += p.vx * dt; p.mesh.position.y += p.vy * dt; p.mesh.position.z += p.vz * dt;
+          p.mesh.rotation.z += dt * 10;
+          let hit = false;
+          for (const t of targets) {
+            if (t.dead) continue;
+            const d = Math.hypot(p.mesh.position.x - t.pos.x, p.mesh.position.z - t.pos.z);
+            if (d < t.hurtRadius + 0.35 && Math.abs(p.mesh.position.y - (t.pos.y + 1.15)) < 1.25) {
+              combatFeedback.onPlayerHitTarget(t, p.dmg, p.poiseDmg, 0.06, 0.22, true, p.mesh.position, p.bleed, p.color);
+              hit = true; break;
+            }
+          }
+          if (!hit) {
+            for (const col of world.staticColliders) {
+              if (Math.hypot(p.mesh.position.x - col.x, p.mesh.position.z - col.z) < col.r + 0.15) {
+                world.spawnSparks(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 10, 6.0, p.color);
+                hit = true; break;
+              }
+            }
+          }
+          if (hit || p.life <= 0) {
+            world.scene.remove(p.mesh); p.mat.dispose(); list.splice(i, 1);
+          }
+        }
+      }
+      return { spawn, update };
+    }
+
+    function dampAngle(current, target, lambda, dt) {
+      let diff = ((target - current + Math.PI) % (Math.PI * 2)) - Math.PI;
+      if (diff < -Math.PI) diff += Math.PI * 2;
+      return current + diff * (1 - Math.exp(-lambda * dt));
+    }
+
+    // =========================================================================
+    // 7. CAMERA: Góc nhìn thứ 3 tự do, Lock-on bám mục tiêu & theo địa hình
+    // =========================================================================
+    function createCameraRig(world) {
+      const camera = new THREE.PerspectiveCamera(CONFIG.camera.fov, window.innerWidth / window.innerHeight, 0.12, 420);
+      let yaw = 0, pitch = 0.24, lockedTarget = null, trauma = 0, fovPunch = 0, titleAngle = 0.4, switchCooldown = 0;
+      const curLook = new THREE.Vector3(0, 1.5, 0), curPos = new THREE.Vector3(0, 3.5, 12);
+
+      function findBestLockTarget(playerPos, targets) {
+        let best = null, bestScore = Infinity;
+        const camDirX = -Math.sin(yaw), camDirZ = -Math.cos(yaw);
+        for (const t of targets) {
+          if (t.dead) continue;
+          const dx = t.pos.x - playerPos.x, dz = t.pos.z - playerPos.z, dist = Math.hypot(dx, dz);
+          if (dist > CONFIG.camera.lockOnRange || dist < 0.4) continue;
+          const score = dist + (1 - ((dx / dist) * camDirX + (dz / dist) * camDirZ)) * 14;
+          if (score < bestScore) { bestScore = score; best = t; }
+        }
+        return best;
+      }
+
+      function switchLockTarget(dir, playerPos, targets) {
+        if (!lockedTarget || switchCooldown > 0) return;
+        const rightX = Math.cos(yaw), rightZ = -Math.sin(yaw);
+        const curDx = lockedTarget.pos.x - playerPos.x, curDz = lockedTarget.pos.z - playerPos.z;
+        let best = null, bestProj = Infinity;
+        for (const t of targets) {
+          if (t === lockedTarget || t.dead) continue;
+          const dx = t.pos.x - playerPos.x, dz = t.pos.z - playerPos.z;
+          if (Math.hypot(dx, dz) > CONFIG.camera.lockOnRange + 2) continue;
+          const relProj = (dx - curDx) * rightX + (dz - curDz) * rightZ;
+          if (dir > 0 && relProj > 0.5 && relProj < bestProj) { bestProj = relProj; best = t; }
+          else if (dir < 0 && relProj < -0.5 && -relProj < bestProj) { bestProj = -relProj; best = t; }
+        }
+        if (best) { lockedTarget = best; switchCooldown = 0.28; AudioSys.playLockOn(); }
+      }
+
+      function toggleLockOn(playerPos, targets) {
+        if (lockedTarget) { lockedTarget = null; return null; }
+        lockedTarget = findBestLockTarget(playerPos, targets);
+        if (lockedTarget) AudioSys.playLockOn();
+        return lockedTarget;
+      }
+
+      function resetBehindPlayer(playerRoot) {
+        yaw = playerRoot.rotation.y + Math.PI; pitch = 0.24;
+        curLook.set(playerRoot.position.x, playerRoot.position.y + CONFIG.camera.height, playerRoot.position.z);
+        curPos.set(curLook.x + Math.sin(yaw) * CONFIG.camera.distance, curLook.y + 1.4, curLook.z + Math.cos(yaw) * CONFIG.camera.distance);
+        camera.position.copy(curPos); camera.lookAt(curLook);
+      }
+
+      function updateTitleTour(dt, playerRoot) {
+        titleAngle += dt * 0.14;
+        const r = 7.4, px = playerRoot.position.x, pz = playerRoot.position.z;
+        camera.position.set(px + Math.sin(titleAngle) * r, 2.2, pz + Math.cos(titleAngle) * r);
+        camera.lookAt(px, 2.55, pz - 3.0);
+      }
+
+      function update(dt, playerRoot, input, targets) {
+        if (switchCooldown > 0) switchCooldown -= dt;
+        if (lockedTarget && (lockedTarget.dead || playerRoot.position.distanceTo(lockedTarget.pos) > CONFIG.camera.lockOnRange + 3)) lockedTarget = null;
+
+        if (lockedTarget) {
+          if (Math.abs(input.lookX) > 0.055) switchLockTarget(input.lookX > 0 ? 1 : -1, playerRoot.position, targets);
+          const dx = lockedTarget.pos.x - playerRoot.position.x, dz = lockedTarget.pos.z - playerRoot.position.z;
+          yaw = dampAngle(yaw, Math.atan2(-dx, -dz), CONFIG.camera.lockOnDamping, dt);
+          pitch = THREE.MathUtils.lerp(pitch, 0.28, 1 - Math.exp(-6 * dt));
+        } else {
+          yaw -= input.lookX;
+          pitch = THREE.MathUtils.clamp(pitch + input.lookY, CONFIG.camera.minPitch, CONFIG.camera.maxPitch);
+        }
+
+        const anchorX = playerRoot.position.x, anchorY = playerRoot.position.y + CONFIG.camera.height, anchorZ = playerRoot.position.z;
+        if (lockedTarget) _v1.set(THREE.MathUtils.lerp(anchorX, lockedTarget.pos.x, 0.28), anchorY + 0.1, THREE.MathUtils.lerp(anchorZ, lockedTarget.pos.z, 0.28));
+        else _v1.set(anchorX, anchorY, anchorZ);
+
+        const horizDist = Math.cos(pitch) * CONFIG.camera.distance, vertOff = Math.sin(pitch) * CONFIG.camera.distance;
+        const rightOff = lockedTarget ? CONFIG.camera.shoulderOffset : 0;
+        let desiredX = anchorX + Math.sin(yaw) * horizDist + Math.cos(yaw) * rightOff;
+        let desiredZ = anchorZ + Math.cos(yaw) * horizDist - Math.sin(yaw) * rightOff;
+        let desiredY = Math.max(getTerrainHeight(desiredX, desiredZ) + 0.65, anchorY + vertOff);
+
+        for (const col of world.staticColliders) {
+          const dx = desiredX - col.x, dz = desiredZ - col.z, minD = col.r + 0.45, dSq = dx * dx + dz * dz;
+          if (dSq < minD * minD && dSq > 1e-6 && desiredY < col.h) {
+            const d = Math.sqrt(dSq); desiredX = col.x + (dx / d) * minD; desiredZ = col.z + (dz / d) * minD;
+          }
+        }
+        const k = 1 - Math.exp(-CONFIG.camera.followDamping * dt);
+        curPos.lerp(_v2.set(desiredX, desiredY, desiredZ), k); curLook.lerp(_v1, k);
+        camera.position.copy(curPos); camera.lookAt(curLook);
+
+        if (trauma > 0.001) {
+          const shake = trauma * trauma;
+          camera.rotation.z += (Math.random() - 0.5) * 0.045 * shake;
+          camera.rotation.x += (Math.random() - 0.5) * 0.032 * shake;
+          trauma = Math.max(0, trauma - dt * 2.6);
+        }
+        if (fovPunch > 0.01) {
+          fovPunch = THREE.MathUtils.lerp(fovPunch, 0, 1 - Math.exp(-10 * dt));
+          camera.fov = CONFIG.camera.fov + fovPunch; camera.updateProjectionMatrix();
+        } else if (Math.abs(camera.fov - CONFIG.camera.fov) > 0.05) {
+          camera.fov = CONFIG.camera.fov; camera.updateProjectionMatrix();
+        }
+      }
+
+      return {
+        camera, get yaw() { return yaw; }, get lockedTarget() { return lockedTarget; },
+        toggleLockOn, resetBehindPlayer, updateTitleTour, update,
+        addTrauma: (a) => { trauma = Math.min(1.0, trauma + a); },
+        addFovPunch: (a) => { fovPunch = Math.min(7, fovPunch + a); },
+      };
+    }
+
+    // =========================================================================
+    // 8. UI / HUD: Cập nhật 3 thanh chỉ số, máu địch, Lock-on & Sát thương
+    // =========================================================================
+    const HudUI = (() => {
+      const hpFrame = document.getElementById('bar-hp-frame'), hpFill = document.getElementById('bar-hp-fill'), hpGhost = document.getElementById('bar-hp-ghost');
+      const fpFrame = document.getElementById('bar-fp-frame'), fpFill = document.getElementById('bar-fp-fill'), fpGhost = document.getElementById('bar-fp-ghost');
+      const stamFrame = document.getElementById('bar-stam-frame'), stamFill = document.getElementById('bar-stam-fill'), stamGhost = document.getElementById('bar-stam-ghost');
+      const runesVal = document.getElementById('hud-runes-val'), stanceLine = document.getElementById('hud-stance-line');
+      const floorBanner = document.getElementById('floor-message-banner'), worldOverlays = document.getElementById('world-overlays');
+      const lockReticle = document.getElementById('lockon-reticle'), centerBanner = document.getElementById('center-banner'), centerBannerText = document.getElementById('center-banner-text');
+      let ghostHp = CONFIG.stats.maxHp, ghostFp = CONFIG.stats.maxFp, ghostStam = CONFIG.stats.maxStamina, bannerTimer = 0;
+      const popups = [];
+
+      function showCenterBanner(text, duration = 2.1) { centerBannerText.textContent = text; centerBanner.classList.add('visible'); bannerTimer = duration; }
+      function spawnDamagePopup(worldPos, amount, isHeavy, camera, customText = null, customColor = null) {
+        _v3.copy(worldPos).project(camera);
+        if (_v3.z < -1 || _v3.z > 1) return;
+        const el = document.createElement('div');
+        el.className = `dmg-popup${isHeavy ? ' is-heavy' : ''}`; el.textContent = customText || String(amount);
+        if (customColor) el.style.color = customColor;
+        worldOverlays.appendChild(el);
+        popups.push({ el, x: (_v3.x * 0.5 + 0.5) * window.innerWidth, y: (-_v3.y * 0.5 + 0.5) * window.innerHeight, vy: -48, life: 0.72, maxLife: 0.72 });
+      }
+      function ensureTargetBar(t) {
+        if (t.hudEl) return t.hudEl;
+        const wrap = document.createElement('div'); wrap.className = 'enemy-hp-float';
+        wrap.innerHTML = `<div class="enemy-hp-name">${t.name}</div><div class="enemy-hp-track"><div class="enemy-hp-ghost"></div><div class="enemy-hp-fill"></div></div>`;
+        worldOverlays.appendChild(wrap);
+        t.hudEl = { wrap, ghost: wrap.querySelector('.enemy-hp-ghost'), fill: wrap.querySelector('.enemy-hp-fill') };
+        return t.hudEl;
+      }
+
+      const flaskCountEl = document.getElementById('hud-flask-count');
+      function update(dt, playerState, targets, lockedTarget, camera, playerPos, signPos) {
+        hpFrame.style.width = `${Math.round(Math.min(340, playerState.maxHp * 0.48))}px`;
+        fpFrame.style.width = `${Math.round(Math.min(280, playerState.maxFp * 1.45))}px`;
+        stamFrame.style.width = `${Math.round(Math.min(280, playerState.maxStamina * 1.45))}px`;
+
+        ghostHp = THREE.MathUtils.lerp(ghostHp, playerState.hp, 1 - Math.exp(-4.5 * dt));
+        ghostFp = THREE.MathUtils.lerp(ghostFp, playerState.fp, 1 - Math.exp(-5.0 * dt));
+        ghostStam = THREE.MathUtils.lerp(ghostStam, playerState.stamina, 1 - Math.exp(-6.5 * dt));
+
+        hpFill.style.transform = `scaleX(${Math.max(0, playerState.hp / playerState.maxHp)})`;
+        hpGhost.style.transform = `scaleX(${Math.max(0, ghostHp / playerState.maxHp)})`;
+        fpFill.style.transform = `scaleX(${Math.max(0, playerState.fp / playerState.maxFp)})`;
+        fpGhost.style.transform = `scaleX(${Math.max(0, ghostFp / playerState.maxFp)})`;
+        stamFill.style.transform = `scaleX(${Math.max(0, playerState.stamina / playerState.maxStamina)})`;
+        stamGhost.style.transform = `scaleX(${Math.max(0, ghostStam / playerState.maxStamina)})`;
+        stamFrame.classList.toggle('low-flash', playerState.staminaExhaustedFlash > 0);
+        runesVal.textContent = String(playerState.runes);
+        if (flaskCountEl) flaskCountEl.textContent = String(playerState.flasks);
+
+        if (lockedTarget && !lockedTarget.dead) {
+          _v3.set(lockedTarget.pos.x, lockedTarget.pos.y + 1.25, lockedTarget.pos.z).project(camera);
+          if (_v3.z >= -1 && _v3.z <= 1) {
+            lockReticle.style.transform = `translate3d(${(_v3.x * 0.5 + 0.5) * window.innerWidth}px, ${(-_v3.y * 0.5 + 0.5) * window.innerHeight}px, 0)`;
+            lockReticle.style.opacity = '1';
+          } else lockReticle.style.opacity = '0';
+        } else lockReticle.style.opacity = '0';
+
+        for (const t of targets) {
+          const ui = ensureTargetBar(t);
+          if (t.dead || (t !== lockedTarget && t.hudVisibleTimer <= 0)) { ui.wrap.style.opacity = '0'; continue; }
+          _v3.set(t.pos.x, t.pos.y + 2.32, t.pos.z).project(camera);
+          if (_v3.z < -1 || _v3.z > 1) { ui.wrap.style.opacity = '0'; continue; }
+          ui.wrap.style.transform = `translate3d(${(_v3.x * 0.5 + 0.5) * window.innerWidth}px, ${(-_v3.y * 0.5 + 0.5) * window.innerHeight}px, 0)`;
+          ui.wrap.style.opacity = '1';
+          ui.fill.style.transform = `scaleX(${Math.max(0, t.hp / t.maxHp)})`;
+          ui.ghost.style.transform = `scaleX(${Math.max(0, t.ghostHp / t.maxHp)})`;
+        }
+
+        for (let i = popups.length - 1; i >= 0; i--) {
+          const p = popups[i]; p.life -= dt; p.y += p.vy * dt; p.vy *= 0.94;
+          p.el.style.left = `${p.x}px`; p.el.style.top = `${p.y}px`; p.el.style.opacity = String(Math.max(0, p.life / p.maxLife));
+          if (p.life <= 0) { p.el.remove(); popups.splice(i, 1); }
+        }
+
+        const nearSign = playerPos.distanceTo(signPos) < 3.6;
+        if (nearSign) {
+          floorBanner.textContent = InputSys.settings.touchMode
+            ? 'Hoang Nguyên Sương Mờ: Kéo trái di chuyển · ATK đánh/giữ Heavy · PARRY đỡ phản · ACT tương tác · MAP mở bản đồ'
+            : 'Thông điệp Tro Tàn: [M] Bản đồ · [E] Tương tác Đài Lửa/NPC · [F] Đỡ/Parry · [C] Cưỡi Tàn Mã · [I] Hành trang · [F6/F7/F8] Dịch chuyển thử';
+        }
+        floorBanner.classList.toggle('visible', nearSign);
+        if (bannerTimer > 0) { bannerTimer -= dt; if (bannerTimer <= 0) centerBanner.classList.remove('visible'); }
+      }
+
+      function updateStanceText(cls = CLASSES[0], lvBonus = 0) {
+        const weightLabel = CONFIG.stats.heavyLoad ? 'Giáp Nặng (Fat Roll)' : 'Roll Nhanh';
+        stanceLine.textContent = `${cls.name} (Lv ${cls.lv + lvBonus}) · ${weightLabel} · [Q] ${cls.skill.name} · [F] Đỡ/Parry`;
+      }
+      return { update, showCenterBanner, spawnDamagePopup, updateStanceText };
+    })();
+
+    // =========================================================================
+    // 9. MENU, CLASS SELECT & GAME SHELL
+    // =========================================================================
+    function renderClassPortraitSvg(cls) {
+      const hex = (n) => `#${n.toString(16).padStart(6, '0')}`;
+      const arm = hex(cls.armorCol), trm = hex(cls.trimCol), clk = hex(cls.cloakCol), glow = hex(cls.skill.color || 0xc9a66b);
+      let weaponSvg = `<path d="M138 36 L142 36 L130 132 L125 132 Z" fill="#D5D9E0" stroke="#111" stroke-width="1"/><path d="M118 118 L142 121" stroke="${trm}" stroke-width="4"/>`;
+      if (cls.weaponType === 'curved') {
+        weaponSvg = `<path d="M142 38 Q152 78 128 124 L123 121 Q143 78 136 40 Z" fill="#D5D9E0"/><path d="M40 46 Q30 82 54 124 L59 121 Q40 82 46 48 Z" fill="#C9CED6"/>`;
+      } else if (cls.weaponType === 'axe') {
+        weaponSvg = `<rect x="132" y="42" width="5" height="92" fill="#6D4B30"/><path d="M136 46 Q164 42 158 78 Q144 76 135 66 Z" fill="#D4D8DF" stroke="${trm}" stroke-width="1.5"/>`;
+      } else if (cls.weaponType === 'dagger') {
+        weaponSvg = `<path d="M136 82 L144 84 L128 122 L123 119 Z" fill="#D5D9E0"/><circle cx="52" cy="116" r="14" fill="#323036" stroke="${trm}" stroke-width="2"/>`;
+      } else if (cls.weaponType === 'staff') {
+        weaponSvg = `<rect x="131" y="34" width="5" height="114" fill="#5D422A"/><circle cx="133.5" cy="34" r="9" fill="${glow}" stroke="#E6F8FF" stroke-width="1.5"/>`;
+      } else if (cls.weaponType === 'spear') {
+        weaponSvg = `<rect x="132" y="26" width="4.5" height="126" fill="#6D4B30"/><path d="M134 10 L141 32 L127 32 Z" fill="#DCE0E6"/><circle cx="54" cy="116" r="8" fill="${glow}" opacity="0.88"/>`;
+      } else if (cls.weaponType === 'katana') {
+        weaponSvg = `<path d="M145 24 Q146 80 124 126 L120 124 Q140 78 139 24 Z" fill="#E3E7EE"/><path d="M116 116 L132 122" stroke="${trm}" stroke-width="3"/>`;
+      } else if (cls.weaponType === 'rapier') {
+        weaponSvg = `<path d="M144 26 L126 124 L122 122 Z" fill="#DCE2EA"/><circle cx="125" cy="118" r="6" fill="none" stroke="${trm}" stroke-width="2"/><circle cx="50" cy="48" r="7" fill="${glow}"/>`;
+      } else if (cls.weaponType === 'club') {
+        weaponSvg = `<path d="M138 48 Q147 50 142 74 L130 124 L124 122 L130 70 Q131 50 138 48 Z" fill="#6E4B2E" stroke="#362212" stroke-width="1.2"/>`;
+      }
+      const shieldSvg = (cls.offhand === 'shield') ? `<path d="M44 92 L72 92 L70 132 L58 148 L46 132 Z" fill="#35373D" stroke="${trm}" stroke-width="2"/>` : '';
+      const helmSvg = cls.helmType === 'kabuto'
+        ? `<path d="M72 48 Q90 22 108 48 L116 62 L64 62 Z" fill="${arm}" stroke="${trm}" stroke-width="1.5"/><path d="M74 34 Q90 48 106 34 Q90 40 74 34 Z" fill="${trm}"/>`
+        : cls.helmType === 'ironmask'
+        ? `<circle cx="90" cy="52" r="18" fill="#52565E" stroke="#1A1B1E" stroke-width="1.5"/><line x1="80" y1="50" x2="100" y2="50" stroke="#111" stroke-width="2"/>`
+        : cls.helmType === 'magehood' || cls.helmType === 'hood'
+        ? `<path d="M90 18 L112 64 L68 64 Z" fill="${clk}" stroke="${trm}" stroke-width="1.2"/><circle cx="90" cy="52" r="11" fill="#1C191A"/>`
+        : cls.helmType === 'bare'
+        ? `<circle cx="90" cy="52" r="14" fill="#8C6E58"/><path d="M78 46 Q90 36 102 46" stroke="#3B2D24" stroke-width="4" fill="none"/>`
+        : `<rect x="76" y="34" width="28" height="32" rx="8" fill="${arm}" stroke="${trm}" stroke-width="1.4"/><line x1="80" y1="48" x2="100" y2="48" stroke="#141316" stroke-width="3"/>`;
+      return `<svg viewBox="0 0 180 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><radialGradient id="g_${cls.id}" cx="50%" cy="42%" r="54%"><stop offset="0%" stop-color="${glow}" stop-opacity="0.26"/><stop offset="100%" stop-color="#09080A" stop-opacity="0"/></radialGradient></defs>
+        <ellipse cx="90" cy="96" rx="72" ry="82" fill="url(#g_${cls.id})"/>
+        <path d="M56 76 Q90 66 124 76 L132 162 L48 162 Z" fill="${clk}" opacity="0.92"/>
+        <rect x="66" y="72" width="48" height="58" rx="6" fill="${arm}" stroke="${trm}" stroke-width="1.6"/>
+        <path d="M62 76 L46 116 L58 122 L70 88 Z" fill="${arm}"/><path d="M118 76 L134 116 L122 122 L110 88 Z" fill="${arm}"/>
+        <rect x="70" y="130" width="16" height="46" rx="3" fill="#2A282D"/><rect x="94" y="130" width="16" height="46" rx="3" fill="#2A282D"/>
+        ${helmSvg}${shieldSvg}${weaponSvg}
+      </svg>`;
+    }
+
+    function initClassSelect(onConfirm, onBack) {
+      const cardsRow = document.getElementById('cs-cards-row');
+      const pageInd = document.getElementById('cs-page-ind');
+      const descText = document.getElementById('cs-desc-text');
+      const gearText = document.getElementById('cs-gear-text');
+      const statsGrid = document.getElementById('cs-stats-grid');
+      const vagOpt = document.getElementById('cs-vagabond-opt');
+      const btnDropSpear = document.getElementById('cs-btn-drop-spear');
+      const infoStrip = document.getElementById('cs-info-strip');
+
+      let selectedIdx = 0, dropSpareSpear = false;
+
+      function render() {
+        const n = CLASSES.length;
+        const leftIdx = (selectedIdx - 1 + n) % n;
+        const rightIdx = (selectedIdx + 1) % n;
+        const slots = [leftIdx, selectedIdx, rightIdx];
+        const active = CLASSES[selectedIdx];
+
+        pageInd.textContent = `${String(selectedIdx + 1).padStart(2, '0')} / ${n}`;
+        cardsRow.innerHTML = slots.map((idx, slotPos) => {
+          const c = CLASSES[idx], isCenter = slotPos === 1;
+          return `<div class="cs-card ${isCenter ? 'is-active' : ''}" data-idx="${idx}" role="button" tabindex="0">
+            <span class="cs-card-badge">Lv ${c.lv}</span>
+            <div class="cs-card-art">${renderClassPortraitSvg(c)}</div>
+            <div class="cs-card-foot">
+              <div class="cs-card-name">${c.name}</div>
+              <div class="cs-card-sub">${c.skill.name}</div>
+            </div>
+          </div>`;
+        }).join('');
+
+        cardsRow.querySelectorAll('.cs-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            const idx = Number(card.dataset.idx);
+            AudioSys.ensureCtx(); AudioSys.playUiClick();
+            if (idx === selectedIdx) onConfirm(CLASSES[selectedIdx], dropSpareSpear);
+            else { selectedIdx = idx; render(); }
+          });
+        });
+
+        descText.textContent = active.desc;
+        gearText.textContent = `Trang bị: ${active.gear}`;
+        const s = active.stats;
+        statsGrid.innerHTML = [
+          ['Cấp', active.lv], ['Sinh lực', s.vig], ['Trí lực', s.mnd], ['Bền bỉ', s.end], ['Sức mạnh', s.str],
+          ['Khéo léo', s.dex], ['Thông tuệ', s.int], ['Đức tin', s.fth], ['Bí ẩn', s.arc],
+          ['HP/FP', `${Math.round(310 + s.vig * 15)}/${Math.round(60 + s.mnd * 7)}`],
+        ].map(([k, v]) => `<div class="cs-stat-cell"><span>${k}</span><b>${v}</b></div>`).join('');
+
+        vagOpt.classList.toggle('visible', active.id === 'vagabond');
+        btnDropSpear.textContent = dropSpareSpear ? 'Đã bỏ Giáo (Roll Nhanh)' : 'Đang giữ Giáo (Nặng)';
+        btnDropSpear.classList.toggle('is-active', dropSpareSpear);
+      }
+
+      document.getElementById('cs-prev').addEventListener('click', () => { AudioSys.ensureCtx(); AudioSys.playUiClick(); selectedIdx = (selectedIdx - 1 + CLASSES.length) % CLASSES.length; render(); });
+      document.getElementById('cs-next').addEventListener('click', () => { AudioSys.ensureCtx(); AudioSys.playUiClick(); selectedIdx = (selectedIdx + 1) % CLASSES.length; render(); });
+      btnDropSpear.addEventListener('click', () => { AudioSys.playUiClick(); dropSpareSpear = !dropSpareSpear; render(); });
+      document.getElementById('cs-btn-stats-toggle').addEventListener('click', () => { infoStrip.classList.toggle('show-stats'); AudioSys.playUiClick(); });
+      document.getElementById('cs-btn-back').addEventListener('click', () => { AudioSys.playUiClick(); onBack(); });
+      document.getElementById('cs-btn-confirm').addEventListener('click', () => onConfirm(CLASSES[selectedIdx], dropSpareSpear));
+
+      window.addEventListener('keydown', (e) => {
+        if (document.body.dataset.state !== 'class_select') return;
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); AudioSys.playUiClick(); selectedIdx = (selectedIdx - 1 + CLASSES.length) % CLASSES.length; render(); }
+        else if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); AudioSys.playUiClick(); selectedIdx = (selectedIdx + 1) % CLASSES.length; render(); }
+        else if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); onConfirm(CLASSES[selectedIdx], dropSpareSpear); }
+        else if (e.code === 'Escape') { e.preventDefault(); AudioSys.playUiClick(); onBack(); }
+      });
+
+      render();
+      return { render, getCurrent: () => ({ cls: CLASSES[selectedIdx], dropSpareSpear }) };
+    }
+
+    function initPauseMenu(onResume, onQuitTitle, onOpenClassSelect, onWeightToggle, onViewPresetChange) {
+      const panelBody = document.getElementById('pause-panel-body');
+      let currentTab = 'settings';
+
+      function renderTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.pause-nav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+        const s = InputSys.settings;
+        if (tab === 'settings') {
+          const vp = s.viewPreset || 'medium';
+          panelBody.innerHTML = `
+            <h2>CÀI ĐẶT CHIẾN ĐẤU &amp; ĐỒ HỌA</h2>
+            <div class="setting-row"><label>Tầm nhìn / Chi tiết (LOD)</label><div class="setting-control">
+              <button class="btn-small-dark ch1-vp-btn ${vp === 'low' ? 'is-active' : ''}" data-vp="low" type="button">Thấp</button>
+              <button class="btn-small-dark ch1-vp-btn ${vp === 'medium' ? 'is-active' : ''}" data-vp="medium" type="button">Vừa</button>
+              <button class="btn-small-dark ch1-vp-btn ${vp === 'high' ? 'is-active' : ''}" data-vp="high" type="button">Cao</button>
+            </div></div>
+            <div class="setting-row"><label>Đổi Class nhân vật</label><div class="setting-control"><button id="set-class-btn" class="btn-small-dark" type="button">Chọn lại Class</button></div></div>
+            <div class="setting-row"><label>Tải trọng giáp (Ảnh hưởng lăn né)</label><div class="setting-control"><button id="set-weight-btn" class="btn-small-dark" type="button">${CONFIG.stats.heavyLoad ? 'Giáp Nặng (Fat Roll)' : 'Trung bình (Nhanh)'}</button></div></div>
+            <div class="setting-row"><label>Độ nhạy Camera</label><div class="setting-control"><input id="set-camsens" type="range" min="0.4" max="2.2" step="0.1" value="${s.camSens}" /><span id="val-camsens">${s.camSens.toFixed(1)}x</span></div></div>
+            <div class="setting-row"><label>Âm thanh tổng hợp</label><div class="setting-control"><button id="set-mute-btn" class="btn-small-dark" type="button">${AudioSys.isMuted() ? 'Đang tắt' : 'Đang bật'}</button></div></div>
+            <div class="setting-row"><label>Hiển thị nút cảm ứng trên màn hình</label><div class="setting-control"><button id="set-touch-btn" class="btn-small-dark ${s.touchMode ? 'is-active' : ''}" type="button">${s.touchMode ? 'Đang bật' : 'Tự động / Tắt'}</button></div></div>`;
+          panelBody.querySelectorAll('.ch1-vp-btn').forEach((b) => {
+            b.onclick = () => { s.viewPreset = b.dataset.vp; InputSys.saveSettings(); onViewPresetChange(s.viewPreset); renderTab('settings'); };
+          });
+          document.getElementById('set-class-btn').onclick = () => onOpenClassSelect();
+          document.getElementById('set-weight-btn').onclick = () => { onWeightToggle(); renderTab('settings'); };
+          document.getElementById('set-camsens').oninput = (e) => { s.camSens = parseFloat(e.target.value); document.getElementById('val-camsens').textContent = `${s.camSens.toFixed(1)}x`; InputSys.saveSettings(); };
+          document.getElementById('set-mute-btn').onclick = () => { AudioSys.setMuted(!AudioSys.isMuted()); syncMuteIcon(); renderTab('settings'); };
+          document.getElementById('set-touch-btn').onclick = () => { s.touchMode = !s.touchMode; InputSys.applyTouchStyles(); InputSys.saveSettings(); renderTab('settings'); };
+        } else if (tab === 'controls') {
+          panelBody.innerHTML = `
+            <h2>BẢNG ĐIỀU KHIỂN CHƯƠNG 1</h2>
+            <table class="controls-table">
+              <tr><td>Di chuyển (Không tốn thể lực)</td><td>WASD / Left Stick</td></tr>
+              <tr><td>Chạy nước rút (Tốn thể lực)</td><td>Giữ Shift / Kéo hết Joystick</td></tr>
+              <tr><td>Lăn né / Bước lùi (Tốn thể lực)</td><td>Space / ROLL / B</td></tr>
+              <tr><td>Đánh nhẹ / Đánh mạnh Heavy</td><td>Nhấn / Giữ Chuột trái / J / ATK</td></tr>
+              <tr><td>Kỹ năng Class / Phép trang bị</td><td>Q / Nhấp Chuột phải / SKILL</td></tr>
+              <tr><td>Parry (nhấn) / Đỡ đòn (giữ)</td><td>F / Nút PARRY</td></tr>
+              <tr><td>Tương tác (Đài lửa, NPC, Nhặt đồ)</td><td>E / Nút ACT</td></tr>
+              <tr><td>Triệu hồi Tàn Mã Chỉ Vàng</td><td>C / Nút MOUNT</td></tr>
+              <tr><td>Bản đồ thế giới / Hành trang</td><td>M (Bản đồ) · I (Túi &amp; Nhật ký)</td></tr>
+              <tr><td>Uống bình hồi máu / Phấn / Bùa FP</td><td>R (Hồi máu) · 1 (Phấn) · 2 (Bùa FP)</td></tr>
+              <tr><td>Phím test nhanh (Làng / Tháp / Boss / Giờ)</td><td>F6 · F7 · F8 · T (+3 giờ)</td></tr>
+            </table>`;
+        } else if (tab === 'touch') {
+          panelBody.innerHTML = `
+            <h2>TÙY CHỈNH CẢM ỨNG</h2>
+            <div class="setting-row"><label>Kích thước nút</label><div class="setting-control"><input id="set-tscale" type="range" min="0.8" max="1.35" step="0.05" value="${s.touchScale}" /><span id="val-tscale">${Math.round(s.touchScale * 100)}%</span></div></div>
+            <div class="setting-row"><label>Độ rõ nút (Opacity)</label><div class="setting-control"><input id="set-topacity" type="range" min="0.3" max="0.95" step="0.05" value="${s.touchOpacity}" /><span id="val-topacity">${Math.round(s.touchOpacity * 100)}%</span></div></div>
+            <div class="setting-row"><label>Chế độ thuận tay trái</label><div class="setting-control"><button id="set-lefthanded" class="btn-small-dark ${s.leftHanded ? 'is-active' : ''}" type="button">${s.leftHanded ? 'Bật' : 'Tắt'}</button></div></div>
+            <div class="setting-row"><label>Rung phản hồi khi đánh trúng</label><div class="setting-control"><button id="set-vib" class="btn-small-dark ${s.vibration ? 'is-active' : ''}" type="button">${s.vibration ? 'Bật' : 'Tắt'}</button></div></div>
+            <div class="setting-row"><label>Tự đánh khi đã Lock-on</label><div class="setting-control"><button id="set-autoatt" class="btn-small-dark ${s.autoAttackOnLock ? 'is-active' : ''}" type="button">${s.autoAttackOnLock ? 'Bật' : 'Tắt'}</button></div></div>
+            <div class="setting-row"><label>Kéo-thả sắp xếp vị trí nút</label><div class="setting-control"><button id="set-draglayout" class="btn-small-dark" type="button">Bắt đầu kéo</button><button id="set-resetlayout" class="btn-small-dark" type="button">Mặc định</button></div></div>`;
+          document.getElementById('set-tscale').oninput = (e) => { s.touchScale = parseFloat(e.target.value); document.getElementById('val-tscale').textContent = `${Math.round(s.touchScale * 100)}%`; InputSys.applyTouchStyles(); InputSys.saveSettings(); };
+          document.getElementById('set-topacity').oninput = (e) => { s.touchOpacity = parseFloat(e.target.value); document.getElementById('val-topacity').textContent = `${Math.round(s.touchOpacity * 100)}%`; InputSys.applyTouchStyles(); InputSys.saveSettings(); };
+          document.getElementById('set-lefthanded').onclick = () => { s.leftHanded = !s.leftHanded; InputSys.applyTouchStyles(); InputSys.saveSettings(); renderTab('touch'); };
+          document.getElementById('set-vib').onclick = () => { s.vibration = !s.vibration; InputSys.saveSettings(); renderTab('touch'); };
+          document.getElementById('set-autoatt').onclick = () => { s.autoAttackOnLock = !s.autoAttackOnLock; InputSys.saveSettings(); renderTab('touch'); };
+          document.getElementById('set-draglayout').onclick = () => { s.touchMode = true; InputSys.applyTouchStyles(); InputSys.setTouchEditMode(true); document.getElementById('pause-menu').style.visibility = 'hidden'; };
+          document.getElementById('set-resetlayout').onclick = () => {
+            s.btnPositions = {
+              light: { rx: 32, by: 30 }, skill: { rx: 46, by: 122 }, roll: { rx: 122, by: 36 }, lock: { rx: 128, by: 120 },
+              parry: { rx: 204, by: 44 }, interact: { rx: 208, by: 122 }, mount: { rx: 32, by: 202 }, map: { rx: 92, by: 202 },
+            };
+            InputSys.applyTouchStyles(); InputSys.saveSettings();
+          };
+        }
+      }
+
+      document.querySelectorAll('.pause-nav-btn[data-tab]').forEach(btn => btn.addEventListener('click', () => { AudioSys.playUiClick(); renderTab(btn.dataset.tab); }));
+      document.getElementById('btn-touch-edit-done').addEventListener('click', () => { InputSys.setTouchEditMode(false); document.getElementById('pause-menu').style.visibility = 'visible'; });
+      document.getElementById('btn-resume-game').addEventListener('click', onResume);
+      document.getElementById('btn-quit-title').addEventListener('click', onQuitTitle);
+      return { renderTab: (t = currentTab) => renderTab(t) };
+    }
+
+    function syncMuteIcon() {
+      const m = AudioSys.isMuted();
+      document.getElementById('icon-sound-on').style.display = m ? 'none' : 'block';
+      document.getElementById('icon-sound-off').style.display = m ? 'block' : 'none';
+    }
+
+    // =========================================================================
+    // 10. GAME: Khởi tạo Renderer, Thế giới mở Chương 1, Boss & Vòng lặp chính
+    // =========================================================================
+    (function bootstrap() {
+      const host = document.getElementById('canvas-host'), isSoftwareGl = detectSoftwareWebGL();
+      const renderer = new THREE.WebGLRenderer({ antialias: !isSoftwareGl, powerPreference: 'high-performance' });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+      renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = !isSoftwareGl; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      host.appendChild(renderer.domElement);
+      renderer.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault());
+
+      const world = createOpenWorld(THREE, RoomEnvironment, renderer, isSoftwareGl, InputSys.settings.viewPreset || 'medium');
+      const projectiles = createProjectiles(world);
+      const player = createPlayer(world, isSoftwareGl);
+      const entities = createWorldEntities(THREE, world, isSoftwareGl);
+      player.root.add(entities.mountGroup);
+      const boss = createRottingBoss(THREE, world);
+      const camRig = createCameraRig(world);
+      if (!isSoftwareGl) renderer.compile(world.scene, camRig.camera);
+
+      let hitStopTimer = 0, autoAttackCooldown = 0, activeTargets = [], lastZoneId = '';
+      const exploredChunks = new Set();
+      let customMarker = null;
+      let lastRestGraceId = 'G1';
+      const inventory = { burned_page: 1, gold_chalk_powder: 1, dry_paper_talisman: 1 };
+      const equipped = { weapon: null, armor: null, spell: null, ring: null };
+
+      function applyEquipmentModifiers() {
+        const w = equipped.weapon ? CH1_CONFIG.items[equipped.weapon] : null;
+        const a = equipped.armor ? CH1_CONFIG.items[equipped.armor] : null;
+        const r = equipped.ring ? CH1_CONFIG.items[equipped.ring] : null;
+        player.state.bonusDmg = w ? (w.dmgBonus || 0) : 0;
+        player.state.bonusBleed = w ? (w.bleedBonus || 0) : 0;
+        player.state.armorDefMult = a ? (a.defMult || 1.0) : 1.0;
+        player.state.bonusMaxStam = r ? (r.maxStamBonus || 0) : 0;
+        player.state.useInkSpell = equipped.spell === 'diluted_ink_bolt';
+        player.state.hasReinsUpgrade = (inventory.old_paper_reins || 0) > 0;
+        player.recomputeCaps(false);
+      }
+
+      function serializeAndSave() {
+        writeChapter1Save({
+          classId: player.state.classSpec.id,
+          dropSpareSpear: player.state.dropSpareSpear,
+          levelBonus: player.state.levelBonus,
+          runes: player.state.runes,
+          pos: { x: player.root.position.x, y: player.root.position.y, z: player.root.position.z },
+          unlockedGraces: entities.graces.filter(g => g.unlocked).map(g => g.id),
+          lastRestGraceId,
+          exploredChunks: Array.from(exploredChunks),
+          lootedPickups: entities.pickups.filter(p => p.looted).map(p => p.id),
+          eliteDead: entities.enemies.some(e => e.isElite && e.permanentlyDead),
+          bossDefeated: boss.state.dead,
+          rottingSkillUnlocked: player.state.rottingSkillUnlocked,
+          inventory,
+          equipped,
+          timeOfDay: world.timeOfDay,
+        });
+        syncContinueButton();
+      }
+
+      function applySavedGame(save) {
+        const cls = CLASSES.find(c => c.id === save.classId) || CLASSES[0];
+        player.state.levelBonus = save.levelBonus || 0;
+        player.applyClass(cls, !!save.dropSpareSpear);
+        player.state.runes = save.runes || 0;
+        player.state.rottingSkillUnlocked = !!save.rottingSkillUnlocked;
+        if (save.pos) player.root.position.set(save.pos.x, save.pos.y, save.pos.z);
+        for (const g of entities.graces) g.unlocked = (save.unlockedGraces || ['G1']).includes(g.id);
+        lastRestGraceId = save.lastRestGraceId || 'G1';
+        exploredChunks.clear();
+        for (const k of (save.exploredChunks || [])) exploredChunks.add(k);
+        entities.unlockAllLootFromSave(save.lootedPickups || []);
+        if (save.eliteDead) {
+          for (const e of entities.enemies) if (e.isElite) { e.dead = true; e.permanentlyDead = true; e.group.visible = false; }
+        }
+        if (save.bossDefeated) {
+          boss.state.dead = true; boss.root.visible = false;
+          world.setBossArenaState(false, true);
+        }
+        Object.assign(inventory, save.inventory || {});
+        Object.assign(equipped, save.equipped || {});
+        if (typeof save.timeOfDay === 'number') world.timeOfDay = save.timeOfDay;
+        applyEquipmentModifiers();
+        HudUI.updateStanceText(cls, player.state.levelBonus);
+      }
+
+      function syncContinueButton() {
+        const btn = document.getElementById('btn-continue');
+        if (btn) btn.style.display = loadChapter1Save() ? 'inline-block' : 'none';
+      }
+      syncContinueButton();
+
+      function warpPlayerTo(x, z, notice = null) {
+        if (boss.state.active && !boss.state.dead && Math.hypot(x - CH1_CONFIG.boss.rottingOne.arenaCenter.x, z - CH1_CONFIG.boss.rottingOne.arenaCenter.z) > CH1_CONFIG.boss.rottingOne.arenaRadius) {
+          boss.resetEncounter();
+          world.setBossArenaState(false, boss.state.dead);
+        }
+        player.state.mounted = false;
+        entities.mountGroup.visible = false;
+        player.root.position.set(x, getTerrainHeight(x, z), z);
+        player.state.velX = 0; player.state.velZ = 0;
+        camRig.resetBehindPlayer(player.root);
+        if (notice) HudUI.showCenterBanner(notice, 1.8);
+      }
+
+      function buildUiContext() {
+        return {
+          graces: entities.graces,
+          exploredChunks,
+          customMarker,
+          playerPos: player.root.position,
+          playerState: player.state,
+          playerLevel: player.state.classSpec.lv + player.state.levelBonus,
+          inventory,
+          equipped,
+          bossActive: boss.state.active,
+          bossDefeated: boss.state.dead,
+        };
+      }
+
+      const ch1Ui = createChapter1UI({
+        onModalClosed: () => { InputSys.clearAllHeld(); },
+        onSetMarker: (x, z) => { customMarker = (x === null) ? null : { x, z }; },
+        onFastTravel: (gid) => {
+          const g = entities.graces.find(gr => gr.id === gid && gr.unlocked);
+          if (!g) return;
+          if (boss.state.active && !boss.state.dead) boss.resetEncounter();
+          world.setBossArenaState(false, boss.state.dead);
+          lastRestGraceId = g.id;
+          warpPlayerTo(g.x, g.z + 2.5, `ĐẾN ${g.name.toUpperCase()}`);
+          serializeAndSave();
+        },
+        onRestAtGrace: (grace) => {
+          grace.unlocked = true;
+          lastRestGraceId = grace.id;
+          player.recomputeCaps(true);
+          player.state.inkSlowTimer = 0;
+          entities.respawnRegularEnemies();
+          AudioSys.playLockOn();
+          HudUI.showCenterBanner('ĐÀI LỬA ĐƯỢC THẮP SÁNG', 1.7);
+          serializeAndSave();
+        },
+        onLevelUp: (cost) => {
+          if (player.state.runes < cost) return false;
+          player.state.runes -= cost;
+          player.state.levelBonus += 1;
+          player.recomputeCaps(true);
+          HudUI.updateStanceText(player.state.classSpec, player.state.levelBonus);
+          AudioSys.playLockOn();
+          serializeAndSave();
+          return true;
+        },
+        onBuyItem: (itemId) => {
+          const it = CH1_CONFIG.items[itemId];
+          if (!it || player.state.runes < it.price) return false;
+          player.state.runes -= it.price;
+          inventory[itemId] = (inventory[itemId] || 0) + 1;
+          AudioSys.playLockOn();
+          serializeAndSave();
+          return true;
+        },
+        onEquipItem: (slot, itemId) => {
+          equipped[slot] = (equipped[slot] === itemId) ? null : itemId;
+          applyEquipmentModifiers();
+          AudioSys.playUiClick();
+          serializeAndSave();
+        },
+        onUseItem: (itemId) => useConsumable(itemId),
+        onToggleMap: () => {
+          if (ch1Ui.isModalOpen()) ch1Ui.closeModal();
+          else ch1Ui.openWorldMap(buildUiContext());
+        },
+        onToggleBag: () => {
+          if (ch1Ui.isModalOpen()) ch1Ui.closeModal();
+          else ch1Ui.openBagAndQuests(buildUiContext());
+        },
+        onInteract: () => triggerInteract(),
+      });
+
+      function useConsumable(itemId) {
+        if ((inventory[itemId] || 0) <= 0) return false;
+        if (itemId === 'gold_chalk_powder') {
+          inventory[itemId] -= 1;
+          player.state.inkSlowTimer = 0;
+          player.state.chalkBuffTimer = 15.0;
+          world.spawnSparks(player.root.position.x, player.root.position.y + 1.1, player.root.position.z, 16, 5, 0xf2d072);
+          AudioSys.playLockOn();
+          HudUI.showCenterBanner('BỘT PHẤN CHỈ VÀNG: +HỒI THỂ LỰC', 1.4);
+          return true;
+        }
+        if (itemId === 'dry_paper_talisman') {
+          inventory[itemId] -= 1;
+          player.state.fp = Math.min(player.state.maxFp, player.state.fp + 120);
+          world.spawnSparks(player.root.position.x, player.root.position.y + 1.1, player.root.position.z, 16, 5, 0x56c8ff);
+          AudioSys.playLockOn();
+          HudUI.showCenterBanner('LÁ BÙA GIẤY KHÔ: +120 FP', 1.4);
+          return true;
+        }
+        return false;
+      }
+
+      function triggerInteract() {
+        const fg = CH1_CONFIG.boss.rottingOne.fogGatePos;
+        if (!boss.state.dead && !boss.state.active && Math.hypot(player.root.position.x - fg.x, player.root.position.z - fg.z) < 4.5) {
+          enterBossArena();
+          return;
+        }
+        const near = entities.findNearestInteractable(player.root.position);
+        if (!near) return;
+        if (near.kind === 'grace') {
+          near.data.unlocked = true;
+          lastRestGraceId = near.data.id;
+          player.recomputeCaps(true);
+          entities.respawnRegularEnemies();
+          serializeAndSave();
+          ch1Ui.openGraceMenu(near.data, buildUiContext());
+        } else if (near.kind === 'npc') {
+          ch1Ui.openNpcDialog(near.data, buildUiContext());
+        } else if (near.kind === 'stele') {
+          ch1Ui.openSteleModal(near.data);
+        } else if (near.kind === 'pickup') {
+          const pk = near.data;
+          pk.looted = true; pk.orb.visible = false;
+          inventory[pk.itemId] = (inventory[pk.itemId] || 0) + (pk.qty || 1);
+          const item = CH1_CONFIG.items[pk.itemId];
+          applyEquipmentModifiers();
+          AudioSys.playLockOn();
+          HudUI.showCenterBanner(`NHẶT ĐƯỢC: ${item.name.toUpperCase()}`, 2.0);
+          serializeAndSave();
+        }
+      }
+
+      function enterBossArena() {
+        if (boss.state.dead || boss.state.active) return;
+        player.state.mounted = false;
+        entities.mountGroup.visible = false;
+        player.root.position.set(0, 0, CH1_CONFIG.boss.rottingOne.fogGatePos.z - 6);
+        world.setBossArenaState(true, false);
+        boss.startEncounter((txt, dur) => ch1Ui.showSubtitle(txt, dur));
+      }
+
+      async function enterFullscreenAndLandscape() {
+        const el = document.documentElement;
+        const reqFs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (reqFs && !isFs) {
+          try { const p = reqFs.call(el); if (p && typeof p.then === 'function') await p; } catch {}
+        }
+        try {
+          if (screen.orientation?.lock) await screen.orientation.lock('landscape');
+        } catch {}
+      }
+
+      function setState(next) {
+        document.body.dataset.state = next; InputSys.clearAllHeld();
+        if (next !== 'playing' && document.pointerLockElement) document.exitPointerLock?.();
+      }
+      function openClassSelect(fromGesture = false) {
+        if (fromGesture || navigator.userActivation?.isActive) {
+          AudioSys.ensureCtx(); AudioSys.playUiClick();
+          enterFullscreenAndLandscape();
+        }
+        document.activeElement?.blur?.();
+        classSelectUi.render();
+        setState('class_select');
+      }
+      function startGame(fromGesture = false, chosenClass = null, dropSpareSpear = false, showIntroFlag = false) {
+        if (fromGesture || navigator.userActivation?.isActive) {
+          AudioSys.ensureCtx(); AudioSys.playUiClick();
+          enterFullscreenAndLandscape();
+        }
+        if (chosenClass) {
+          player.state.levelBonus = 0;
+          player.applyClass(chosenClass, dropSpareSpear);
+          HudUI.updateStanceText(chosenClass, 0);
+        }
+        document.activeElement?.blur?.();
+        const beginPlay = () => {
+          camRig.resetBehindPlayer(player.root);
+          setState('playing');
+          renderer.render(world.scene, camRig.camera);
+        };
+        if (showIntroFlag) {
+          setState('playing');
+          ch1Ui.showIntro(beginPlay);
+        } else {
+          beginPlay();
+        }
+      }
+      function togglePause() {
+        if (ch1Ui.isModalOpen()) { ch1Ui.closeModal(); return; }
+        const cur = document.body.dataset.state;
+        if (cur === 'playing') { AudioSys.playUiClick(); pauseMenu.renderTab('settings'); setState('paused'); }
+        else if (cur === 'paused') { AudioSys.playUiClick(); InputSys.setTouchEditMode(false); document.getElementById('pause-menu').style.visibility = 'visible'; setState('playing'); }
+      }
+      function toggleWeight() { CONFIG.stats.heavyLoad = !CONFIG.stats.heavyLoad; HudUI.updateStanceText(player.state.classSpec, player.state.levelBonus); AudioSys.playUiClick(); }
+      function toggleMute() { AudioSys.setMuted(!AudioSys.isMuted()); syncMuteIcon(); }
+
+      const classSelectUi = initClassSelect(
+        (cls, dropSpear) => {
+          warpPlayerTo(CH1_CONFIG.playerStart.x, CH1_CONFIG.playerStart.z);
+          startGame(true, cls, dropSpear, true);
+        },
+        () => setState('title')
+      );
+      const pauseMenu = initPauseMenu(
+        () => togglePause(),
+        () => { AudioSys.playUiClick(); serializeAndSave(); setState('title'); },
+        () => openClassSelect(true),
+        toggleWeight,
+        (vp) => world.applyViewPreset(vp)
+      );
+      InputSys.init(renderer.domElement, togglePause, toggleWeight, toggleMute);
+      HudUI.updateStanceText(player.state.classSpec, 0);
+
+      document.getElementById('btn-start').addEventListener('click', () => openClassSelect(true));
+      document.getElementById('btn-continue').addEventListener('click', () => {
+        const sv = loadChapter1Save();
+        if (!sv) return openClassSelect(true);
+        AudioSys.ensureCtx(); AudioSys.playUiClick();
+        applySavedGame(sv);
+        startGame(true, null, false, false);
+      });
+      document.getElementById('btn-force-landscape').addEventListener('click', () => enterFullscreenAndLandscape());
+      document.getElementById('btn-pause').addEventListener('click', (e) => { e.currentTarget.blur(); togglePause(); });
+      document.getElementById('btn-mute').addEventListener('click', (e) => { e.currentTarget.blur(); toggleMute(); });
+      window.addEventListener('keydown', (e) => {
+        if (document.body.dataset.state === 'title' && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); openClassSelect(true); }
+      });
+      window.addEventListener('resize', () => {
+        camRig.camera.aspect = window.innerWidth / window.innerHeight; camRig.camera.updateProjectionMatrix();
+        renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      const qs = new URLSearchParams(window.location.search);
+      if (qs.get('touch') === '1') {
+        InputSys.settings.touchMode = true;
+        InputSys.applyTouchStyles();
+      }
+      if (qs.get('autostart') === '1' || qs.get('warp')) {
+        const clsParam = qs.get('class');
+        const initialCls = CLASSES.find(c => c.id === clsParam) || CLASSES[0];
+        startGame(false, initialCls, initialCls.id === 'vagabond' && qs.get('dropspear') === '1', false);
+        const wParam = qs.get('warp');
+        if (wParam === 'boss') warpPlayerTo(CH1_CONFIG.warps.F8.x, CH1_CONFIG.warps.F8.z);
+        else if (wParam === 'village') warpPlayerTo(CH1_CONFIG.warps.F6.x, CH1_CONFIG.warps.F6.z);
+        else if (wParam === 'tower') warpPlayerTo(CH1_CONFIG.warps.F7.x, CH1_CONFIG.warps.F7.z);
+      }
+
+      function handleEnemyDamagePlayer(dmg, poiseDmg, parryable, srcPos, slowSec = 0, unblockable = false) {
+        const ps = player.state;
+        if (ps.invulnTimer > 0) return 'dodged';
+        if (parryable && ps.parryWindowTimer > 0) {
+          ps.parryWindowTimer = 0;
+          ps.invulnTimer = 0.45;
+          hitStopTimer = 0.095;
+          camRig.addTrauma(0.32);
+          AudioSys.playParry();
+          world.spawnSparks(player.root.position.x, player.root.position.y + 1.25, player.root.position.z, 26, 9, 0xffe082);
+          HudUI.spawnDamagePopup(_v4.set(player.root.position.x, player.root.position.y + 2.0, player.root.position.z), 0, true, camRig.camera, 'PHẢN ĐÒN! (PARRY)', '#ffe082');
+          return 'parried';
+        }
+        let finalDmg = Math.round(dmg * ps.armorDefMult);
+        if (!unblockable && ps.guarding) {
+          const stamCost = Math.max(14, poiseDmg * 0.72);
+          ps.stamina = Math.max(0, ps.stamina - stamCost);
+          ps.staminaDelayTimer = CONFIG.stats.staminaRegenDelay;
+          AudioSys.playGuard();
+          if (ps.stamina <= 0) {
+            ps.guardBreakTimer = 0.9;
+            HudUI.showCenterBanner('VỠ THẾ ĐỠ (GUARD BREAK)', 1.2);
+          } else {
+            finalDmg = Math.round(finalDmg * 0.35);
+            world.spawnSparks(player.root.position.x, player.root.position.y + 1.1, player.root.position.z, 12, 5, 0x9ec6ff);
+          }
+        }
+        ps.hp = Math.max(0, ps.hp - finalDmg);
+        if (slowSec > 0 && ps.chalkBuffTimer <= 0) ps.inkSlowTimer = Math.max(ps.inkSlowTimer, slowSec);
+        camRig.addTrauma(0.28);
+        AudioSys.playHit(false);
+        HudUI.spawnDamagePopup(_v4.set(player.root.position.x, player.root.position.y + 1.75, player.root.position.z), finalDmg, false, camRig.camera, `-${finalDmg}`, '#e85656');
+
+        if (ps.hp <= 0) {
+          HudUI.showCenterBanner('YOU DIED', 2.4);
+          setTimeout(() => {
+            const g = entities.graces.find(gr => gr.id === lastRestGraceId) || entities.graces[0];
+            player.recomputeCaps(true);
+            player.state.inkSlowTimer = 0;
+            player.state.guardBreakTimer = 0;
+            if (boss.state.active && !boss.state.dead) boss.resetEncounter();
+            world.setBossArenaState(false, boss.state.dead);
+            entities.respawnRegularEnemies();
+            warpPlayerTo(g.x, g.z + 2.5);
+          }, 1900);
+        }
+        return 'hit';
+      }
+
+      const combatFeedback = {
+        onSkillNotice(msg) { HudUI.showCenterBanner(msg, 1.4); },
+        onPlayerHitTarget(tgt, dmg, poiseDmg, hitStop, shake, isHeavy, impactPos, bleedAdd = 0, sparkHex = 0xffc864, isRiposte = false) {
+          tgt.hp = Math.max(0, tgt.hp - dmg); tgt.poise -= poiseDmg;
+          tgt.hudVisibleTimer = 4.5; tgt.hitFlashTimer = 0.065;
+          const dx = tgt.pos.x - player.root.position.x, dz = tgt.pos.z - player.root.position.z;
+          tgt.wobbleAxis.set(dz, 0, -dx).normalize(); tgt.wobbleVel += isHeavy ? 8.5 : 5.2;
+          hitStopTimer = hitStop; camRig.addTrauma(shake); if (isHeavy) camRig.addFovPunch(3.2);
+          AudioSys.playHit(isHeavy); InputSys.vibrate(isHeavy ? 42 : 22);
+          world.spawnSparks(impactPos.x, impactPos.y, impactPos.z, isHeavy ? 20 : 11, isHeavy ? 8.2 : 5.6, sparkHex);
+          HudUI.spawnDamagePopup(_v4.set(tgt.pos.x, tgt.pos.y + 1.85, tgt.pos.z), dmg, isHeavy, camRig.camera, isRiposte ? `${dmg} CHÍ MẠNG!` : String(dmg), isRiposte ? '#ff8e52' : null);
+
+          if (bleedAdd > 0 && !tgt.dead) {
+            tgt.bleed += bleedAdd; tgt.bleedTimer = 3.5;
+            if (tgt.bleed >= tgt.maxBleed) {
+              tgt.bleed = 0;
+              const bleedDmg = 185;
+              tgt.hp = Math.max(0, tgt.hp - bleedDmg);
+              world.spawnSparks(tgt.pos.x, tgt.pos.y + 1.2, tgt.pos.z, 26, 9.2, 0xd42228);
+              HudUI.spawnDamagePopup(_v4.set(tgt.pos.x, tgt.pos.y + 2.25, tgt.pos.z), bleedDmg, true, camRig.camera, `${bleedDmg} XUẤT HUYẾT!`, '#e8454a');
+            }
+          }
+          if (tgt.hp <= 0 && !tgt.dead && tgt.id !== CH1_CONFIG.boss.rottingOne.id) {
+            tgt.dead = true;
+            const rw = tgt.spec?.runes || 80;
+            player.state.runes += rw;
+            if (tgt.isElite) {
+              tgt.permanentlyDead = true;
+              inventory.diluted_ink_bolt = 1;
+              HudUI.showCenterBanner('KẺ NUỐT MỰC CỔ ĐÃ NGÃ · +MŨI TÊN MỰC LOÃNG', 2.4);
+              serializeAndSave();
+            }
+          }
+        },
+      };
+
+      const bossCallbacks = {
+        onBossHitPlayer: (dmg, poiseDmg, parryable, srcPos, slowSec, unblockable) => handleEnemyDamagePlayer(dmg, poiseDmg, parryable, srcPos, slowSec, unblockable),
+        onPlayerInInkPool: () => { if (player.state.chalkBuffTimer <= 0) player.state.inkSlowTimer = 1.2; },
+        showSubtitle: (txt, dur) => ch1Ui.showSubtitle(txt, dur),
+        onPhase2Cutscene: (sub) => {
+          ch1Ui.showSubtitle(sub, 2.4);
+          camRig.addTrauma(0.55);
+          AudioSys.playParry();
+        },
+        onBossDefeated: () => {
+          player.state.runes += CH1_CONFIG.boss.rottingOne.rewardRunes;
+          player.state.rottingSkillUnlocked = true;
+          inventory.rotting_book_shard = 1;
+          const g5 = entities.graces.find(g => g.id === 'G5');
+          if (g5) g5.unlocked = true;
+          world.setBossArenaState(false, true);
+          HudUI.showCenterBanner('ENEMY FELLED', 2.8);
+          serializeAndSave();
+          setTimeout(() => ch1Ui.showEpilogue(), 2400);
+        },
+      };
+
+      let lastTime = performance.now(), elapsed = 0;
+      function afterDraw(cb) {
+        const gl = renderer.getContext(), sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+        gl.flush();
+        const poll = () => {
+          const st = sync && gl.getSyncParameter(sync, gl.SYNC_STATUS);
+          if (st === gl.UNSIGNALED) setTimeout(poll, 5);
+          else { gl.deleteSync(sync); setTimeout(cb, 80); }
+        };
+        setTimeout(poll, 5);
+      }
+
+      function tick() {
+        const now = performance.now(), dt = Math.min((now - lastTime) * 0.001, 0.05); lastTime = now;
+        const gameState = document.body.dataset.state;
+        if (gameState === 'title' || gameState === 'class_select') {
+          elapsed += dt; world.updateWorld(dt, elapsed, player.root.position); camRig.updateTitleTour(dt, player.root);
+        } else if (gameState === 'playing') {
+          elapsed += dt;
+          const input = InputSys.pollFrame(dt);
+
+          // Phím tắt & Tương tác Chương 1 (ưu tiên dịch chuyển trước khi kiểm tra tương tác)
+          if (InputSys.consumeJustPressed('warpF6')) warpPlayerTo(CH1_CONFIG.warps.F6.x, CH1_CONFIG.warps.F6.z, 'DỊCH CHUYỂN: LÀNG BÌA CŨ [G3]');
+          if (InputSys.consumeJustPressed('warpF7')) warpPlayerTo(CH1_CONFIG.warps.F7.x, CH1_CONFIG.warps.F7.z, 'DỊCH CHUYỂN: THÁP TRANG SÁCH GÃY [G4]');
+          if (InputSys.consumeJustPressed('warpF8')) warpPlayerTo(CH1_CONFIG.warps.F8.x, CH1_CONFIG.warps.F8.z, 'DỊCH CHUYỂN: CỔNG SƯƠNG BOSS [G5]');
+          if (InputSys.consumeJustPressed('map')) ch1Ui.isModalOpen() ? ch1Ui.closeModal() : ch1Ui.openWorldMap(buildUiContext());
+          if (InputSys.consumeJustPressed('bag')) ch1Ui.isModalOpen() ? ch1Ui.closeModal() : ch1Ui.openBagAndQuests(buildUiContext());
+          if (InputSys.consumeJustPressed('interact') && !ch1Ui.isModalOpen()) triggerInteract();
+          if (InputSys.consumeJustPressed('timeAdvance')) { world.advanceTimeHours(3); HudUI.showCenterBanner(world.getTimeLabel(), 1.3); }
+          if (InputSys.consumeJustPressed('useChalk')) useConsumable('gold_chalk_powder');
+          if (InputSys.consumeJustPressed('useTalisman')) useConsumable('dry_paper_talisman');
+          if (InputSys.consumeJustPressed('mount')) {
+            if (boss.state.active && !boss.state.dead) HudUI.showCenterBanner('KHÔNG THỂ GỌI NGỰA TRONG ĐẤU TRƯỜNG BOSS', 1.4);
+            else {
+              player.state.mounted = !player.state.mounted;
+              entities.mountGroup.visible = player.state.mounted;
+              AudioSys.playLockOn();
+            }
+          }
+
+          // Khám phá ô bản đồ 64x64
+          const pcx = Math.floor(player.root.position.x / CH1_CONFIG.world.chunkSize);
+          const pcz = Math.floor(player.root.position.z / CH1_CONFIG.world.chunkSize);
+          for (let ox = -1; ox <= 1; ox++) for (let oz = -1; oz <= 1; oz++) exploredChunks.add(`${pcx + ox},${pcz + oz}`);
+
+          // Tự động bước qua Cổng Sương Boss nếu đi bộ vào trong Hố Khởi Nguyên
+          const distArenaCenter = Math.hypot(player.root.position.x - CH1_CONFIG.boss.rottingOne.arenaCenter.x, player.root.position.z - CH1_CONFIG.boss.rottingOne.arenaCenter.z);
+          if (!boss.state.dead && !boss.state.active && distArenaCenter < CH1_CONFIG.boss.rottingOne.arenaRadius - 3 && player.root.position.z < -643) {
+            enterBossArena();
+          }
+
+          if (!ch1Ui.isModalOpen()) {
+            if (InputSys.consumeJustPressed('lock')) camRig.toggleLockOn(player.root.position, activeTargets);
+            if (InputSys.settings.autoAttackOnLock && camRig.lockedTarget && player.state.action === 'idle') {
+              autoAttackCooldown -= dt;
+              if (player.root.position.distanceTo(camRig.lockedTarget.pos) <= 2.45 && autoAttackCooldown <= 0) {
+                InputSys.queueBuffer('light'); autoAttackCooldown = 0.65;
+              }
+            }
+            if (hitStopTimer > 0) hitStopTimer -= dt;
+            else {
+              const activeEnemies = entities.updateEntities(dt, elapsed, player, handleEnemyDamagePlayer);
+              boss.update(dt, elapsed, player, bossCallbacks);
+              activeTargets = boss.state.active && !boss.state.dead ? [boss.state, ...boss.clones, ...activeEnemies] : activeEnemies;
+              player.update(dt, input, camRig.yaw, camRig.lockedTarget, activeTargets, world, combatFeedback, projectiles, boss.state.active && !boss.state.dead);
+              projectiles.update(dt, activeTargets, combatFeedback);
+            }
+            camRig.update(dt, player.root, input, activeTargets);
+          }
+
+          const worldInfo = world.updateWorld(dt, elapsed, player.root.position);
+          if (worldInfo.zone.id !== lastZoneId) {
+            lastZoneId = worldInfo.zone.id;
+            HudUI.showCenterBanner(worldInfo.zone.name.toUpperCase(), 2.0);
+          }
+          AudioSys.updateMusic(dt, worldInfo.zone.danger || 0, boss.state.active && !boss.state.dead, boss.state.phase, ch1Ui.isModalOpen());
+          HudUI.update(dt, player.state, activeTargets, camRig.lockedTarget, camRig.camera, player.root.position, world.signPos);
+
+          // Nhắc tương tác Cổng Sương hoặc Đối tượng gần
+          let promptText = null;
+          const fg = CH1_CONFIG.boss.rottingOne.fogGatePos;
+          if (!boss.state.dead && !boss.state.active && Math.hypot(player.root.position.x - fg.x, player.root.position.z - fg.z) < 4.5) {
+            promptText = '[E] Bước qua Màn Sương (Kẻ Mục Rữa)';
+          } else {
+            const near = entities.findNearestInteractable(player.root.position);
+            if (near) promptText = near.label;
+          }
+
+          ch1Ui.updateHud(dt, {
+            cameraYaw: camRig.yaw,
+            playerPos: player.root.position,
+            graces: entities.graces,
+            customMarker,
+            zone: worldInfo.zone,
+            timeLabel: world.getTimeLabel(),
+            bossActive: boss.state.active && !boss.state.dead,
+            bossState: boss.state,
+            interactPrompt: promptText,
+            mounted: player.state.mounted,
+            inkSlowTimer: player.state.inkSlowTimer,
+            chalkBuffTimer: player.state.chalkBuffTimer,
+            guarding: player.state.guarding,
+            inventory,
+          });
+        }
+        renderer.render(world.scene, camRig.camera);
+        if (isSoftwareGl) afterDraw(tick); else requestAnimationFrame(tick);
+      }
+      tick();
+    })();
+  </script>
+</body>
+</html>

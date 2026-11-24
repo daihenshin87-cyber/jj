@@ -1,0 +1,6 @@
+{
+  "name": "Ashen Oath",
+  "description": "A dark fantasy 3D Soulslike web combat prototype built with Three.js.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
