@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "notes": "Thả các file .glb thật (CC0 hoặc CC-BY) đúng đường dẫn bên dưới. Chạy `npm run check-assets` để kiểm tra file còn thiếu.",
+  "assets": {
+    "player_knight": {
+      "path": "assets/characters/player_knight.glb",
+      "category": "characters",
+      "scale": 1.0,
+      "radius": 0.55,
+      "height": 1.85,
+      "license": "CC0 / CC-BY (bổ sung khi tải)"
+    },
+    "enemy_paper_husk": {
+      "path": "assets/characters/enemy_paper_husk.glb",
+      "category": "characters",
+      "scale": 1.0,
+      "radius": 0.65,
+      "height": 1.9,
+      "license": "CC0 / CC-BY"
+    },
+    "enemy_script_branch": {
+      "path": "assets/characters/enemy_script_branch.glb",
+      "category": "characters",
+      "scale": 1.15,
+      "radius": 0.8,
+      "height": 2.3,
+      "license": "CC0 / CC-BY"
+    },
+    "enemy_echo_villager": {
+      "path": "assets/characters/enemy_echo_villager.glb",
+      "category": "characters",
+      "scale": 1.0,
+      "radius": 0.65,
+      "height": 1.9,
+      "license": "CC0 / CC-BY"
+    },
+    "enemy_ink_devourer": {
+      "path": "assets/characters/enemy_ink_devourer.glb",
+      "category": "characters",
+      "scale": 1.6,
+      "radius": 1.25,
+      "height": 3.1,
+      "license": "CC0 / CC-BY"
+    },
+    "boss_megid_story": {
+      "path": "assets/characters/boss_megid_story.glb",
+      "category": "characters",
+      "scale": 1.8,
+      "radius": 1.6,
+      "height": 4.6,
+      "license": "CC0 / CC-BY"
+    },
+    "boss_megid_creature": {
+      "path": "assets/characters/boss_megid_creature.glb",
+      "category": "characters",
+      "scale": 2.0,
+      "radius": 1.8,
+      "height": 5.0,
+      "license": "CC0 / CC-BY"
+    },
+    "boss_megid_mythic": {
+      "path": "assets/characters/boss_megid_mythic.glb",
+      "category": "characters",
+      "scale": 2.2,
+      "radius": 2.1,
+      "height": 5.8,
+      "license": "CC0 / CC-BY"
+    },
+    "anim_locomotion_pack": {
+      "path": "assets/animations/humanoid_combat.glb",
+      "category": "animations",
+      "scale": 1.0,
+      "license": "CC0 / CC-BY"
+    },
+    "npc_bookbinder": {
+      "path": "assets/npcs/npc_bookbinder.glb",
+      "category": "npcs",
+      "scale": 1.0,
+      "radius": 0.55,
+      "height": 1.8,
+      "license": "CC0 / CC-BY"
+    },
+    "npc_ash_amnesiac": {
+      "path": "assets/npcs/npc_ash_amnesiac.glb",
+      "category": "npcs",
+      "scale": 1.0,
+      "radius": 0.55,
+      "height": 1.8,
+      "license": "CC0 / CC-BY"
+    },
+    "npc_mist_maiden": {
+      "path": "assets/npcs/npc_mist_maiden.glb",
+      "category": "npcs",
+      "scale": 1.0,
+      "radius": 0.5,
+      "height": 1.75,
+      "license": "CC0 / CC-BY"
+    },
+    "animal_gold_steed": {
+      "path": "assets/animals/animal_gold_steed.glb",
+      "category": "animals",
+      "scale": 1.0,
+      "radius": 0.9,
+      "height": 1.65,
+      "license": "CC0 / CC-BY"
+    },
+    "weapon_truth_blade": {
+      "path": "assets/weapons/weapon_truth_blade.glb",
+      "category": "weapons",
+      "scale": 1.0,
+      "license": "CC0 / CC-BY"
+    },
+    "weapon_sacred_shard": {
+      "path": "assets/weapons/weapon_sacred_shard.glb",
+      "category": "weapons",
+      "scale": 1.0,
+      "radius": 0.5,
+      "height": 1.2,
+      "license": "CC0 / CC-BY"
+    },
+    "env_autumn_tree": {
+      "path": "assets/environment/env_autumn_tree.glb",
+      "category": "environment",
+      "scale": 1.0,
+      "radius": 0.9,
+      "height": 6.5,
+      "license": "CC0 / CC-BY"
+    },
+    "env_dead_tree": {
+      "path": "assets/environment/env_dead_tree.glb",
+      "category": "environment",
+      "scale": 1.0,
+      "radius": 0.85,
+      "height": 5.8,
+      "license": "CC0 / CC-BY"
+    },
+    "env_moss_rock": {
+      "path": "assets/environment/env_moss_rock.glb",
+      "category": "environment",
+      "scale": 1.0,
+      "radius": 1.6,
+      "height": 2.2,
+      "license": "CC0 / CC-BY"
+    },
+    "env_lore_stele": {
+      "path": "assets/environment/env_lore_stele.glb",
+      "category": "environment",
+      "scale": 1.0,
+      "radius": 0.85,
+      "height": 2.8,
+      "license": "CC0 / CC-BY"
+    },
+    "env_grace_brazier": {
+      "path": "assets/environment/env_grace_brazier.glb",
+      "category": "environment",
+      "scale": 1.0,
+      "radius": 0.8,
+      "height": 1.2,
+      "license": "CC0 / CC-BY"
+    },
+    "kit_ruin_arch": {
+      "path": "assets/kits/kit_ruin_arch.glb",
+      "category": "kits",
+      "scale": 1.0,
+      "radius": 3.2,
+      "height": 7.0,
+      "license": "CC0 / CC-BY"
+    },
+    "kit_village_house": {
+      "path": "assets/kits/kit_village_house.glb",
+      "category": "kits",
+      "scale": 1.0,
+      "radius": 3.8,
+      "height": 4.8,
+      "license": "CC0 / CC-BY"
+    },
+    "kit_broken_tower": {
+      "path": "assets/kits/kit_broken_tower.glb",
+      "category": "kits",
+      "scale": 1.0,
+      "radius": 9.0,
+      "height": 18.0,
+      "license": "CC0 / CC-BY"
+    },
+    "kit_golden_capital_tier": {
+      "path": "assets/kits/kit_golden_capital_tier.glb",
+      "category": "kits",
+      "scale": 1.0,
+      "radius": 12.0,
+      "height": 16.0,
+      "license": "CC0 / CC-BY"
+    }
+  }
+}

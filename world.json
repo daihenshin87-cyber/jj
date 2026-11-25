@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "title": "Thế Giới Sách Toàn Năng (Ô Nhiễm)",
+  "sizeMeters": 6000,
+  "halfSize": 3000,
+  "seed": 104729,
+  "chunkSize": 128,
+  "playerStart": { "x": -1350, "z": 1650 },
+  "pillarPos": { "x": 0, "z": -120 },
+  "blueVortexPos": { "x": 2380, "z": -1420 },
+  "underground": {
+    "floor1Pos": { "x": 2380, "z": -1420, "y": -45 },
+    "floor2Pos": { "x": 2380, "z": -1420, "y": -92 }
+  },
+  "books": [
+    {
+      "id": "story_book",
+      "name": "Sách Truyện (Tây)",
+      "levelRange": "1–35",
+      "cx": -1400,
+      "cz": 200,
+      "radius": 1150,
+      "color": "#8f9a66",
+      "megidId": "megid_story",
+      "desc": "Lục địa dài chạy Bắc–Nam mang dấu tích truyện phiêu lưu anh hùng, cổ tích và Hoang Nguyên Sương Mờ Chương 1."
+    },
+    {
+      "id": "creature_book",
+      "name": "Sách Sinh Vật (Nam)",
+      "levelRange": "30–60",
+      "cx": 50,
+      "cz": 1750,
+      "radius": 1100,
+      "color": "#8c6244",
+      "megidId": "megid_creature",
+      "desc": "Hai hòn đảo sinh thái phía Nam: Đảo Tây Nam rừng rậm xanh olive và Đảo Đông Nam hoang mạc đỏ rực."
+    },
+    {
+      "id": "mythic_book",
+      "name": "Sách Thần Thú (Đông Bắc)",
+      "levelRange": "55–90",
+      "cx": 1350,
+      "cz": -1250,
+      "radius": 1250,
+      "color": "#9ab2c7",
+      "megidId": "megid_mythic",
+      "desc": "Lục địa núi non hiểm trở và Cao Nguyên Tuyết nơi rồng, thần thú và đền cổ trú ngụ. Phía Đông có Cổng Xoáy Xanh xuống Thế Giới Ngầm."
+    },
+    {
+      "id": "golden_capital",
+      "name": "Thủ Phủ Vàng & Vùng Ẩn Cuối",
+      "levelRange": "80–120",
+      "cx": 0,
+      "cz": -120,
+      "radius": 420,
+      "color": "#e5be64",
+      "requiresAllShards": 12,
+      "requiresMegids": 3,
+      "desc": "Giáp ranh giữa Tây và Đông Bắc quanh Cột Sáng Trang Sách. Phong ấn chỉ mở khi gom đủ 12 Mảnh Thánh Kiếm và hạ 3 Megid."
+    }
+  ],
+  "zones": [
+    { "id": "shattered_shore", "bookId": "story_book", "name": "Sương Mờ — Bãi Trang Rách", "sub": "Chương 1 · Khởi đầu", "cx": -1350, "cz": 1650, "r": 260, "fogColor": "#3a3f34", "fogDensity": 0.0085, "danger": 0, "level": "1–8" },
+    { "id": "old_binding_village", "bookId": "story_book", "name": "Làng Bìa Cũ", "sub": "Tiếng vọng đóng gáy xưa", "cx": -1180, "cz": 960, "r": 250, "fogColor": "#453e32", "fogDensity": 0.0078, "danger": 1, "level": "8–16" },
+    { "id": "magic_lake", "bookId": "story_book", "name": "Hồ Phép & Tháp Gãy", "sub": "Dấu tích Hội Kiếm Chân Lý", "cx": -1540, "cz": 220, "r": 280, "fogColor": "#35403b", "fogDensity": 0.0088, "danger": 2, "level": "15–25" },
+    { "id": "ink_marsh", "bookId": "story_book", "name": "Đầm Mực Ô Nhiễm", "sub": "Lãnh địa Megid Sách Truyện", "cx": -1320, "cz": -620, "r": 280, "fogColor": "#23252b", "fogDensity": 0.011, "danger": 3, "level": "25–35" },
+    { "id": "olive_jungle_island", "bookId": "creature_book", "name": "Đảo Tây Nam — Rừng Olive", "sub": "Sách Sinh Vật · Rừng & Đầm lầy", "cx": -480, "cz": 1820, "r": 430, "fogColor": "#3b4530", "fogDensity": 0.0082, "danger": 2, "level": "30–45" },
+    { "id": "crimson_desert_island", "bookId": "creature_book", "name": "Đảo Đông Nam — Hoang Mạc Đỏ", "sub": "Sách Sinh Vật · Lãnh địa Megid II", "cx": 620, "cz": 1760, "r": 430, "fogColor": "#543229", "fogDensity": 0.0086, "danger": 3, "level": "45–60" },
+    { "id": "dragon_ridge", "bookId": "mythic_book", "name": "Đỉnh Rồng & Đền Cổ", "sub": "Sách Thần Thú", "cx": 1150, "cz": -860, "r": 460, "fogColor": "#49473e", "fogDensity": 0.008, "danger": 3, "level": "55–75" },
+    { "id": "snow_plateau", "bookId": "mythic_book", "name": "Cao Nguyên Tuyết & Cổng Xoáy Xanh", "sub": "Lãnh địa Megid III & Lối Ngầm", "cx": 1720, "cz": -1580, "r": 500, "fogColor": "#4c5664", "fogDensity": 0.0092, "danger": 4, "level": "70–90" },
+    { "id": "golden_capital", "bookId": "golden_capital", "name": "Thủ Phủ Vàng — Cột Sáng", "sub": "Tầng Thánh Kiếm Hợp Nhất", "cx": 0, "cz": -120, "r": 360, "fogColor": "#5c5035", "fogDensity": 0.0072, "danger": 4, "level": "80–120" },
+    { "id": "cloud_island_west", "bookId": "story_book", "name": "Đảo Mây Bí Mật Tây", "sub": "Mép Trang Sách Trên Không", "cx": -2480, "cz": -1920, "r": 180, "fogColor": "#535863", "fogDensity": 0.0068, "danger": 3, "level": "40+" }
+  ],
+  "graces": [
+    { "id": "G1", "name": "Đài Lửa Sương Mờ", "zone": "Sương Mờ — Bãi Trang Rách", "x": -1350, "z": 1615, "unlockedByDefault": true },
+    { "id": "G2", "name": "Đài Lửa Làng Bìa Cũ", "zone": "Làng Bìa Cũ", "x": -1180, "z": 975, "unlockedByDefault": false },
+    { "id": "G3", "name": "Đài Lửa Bờ Hồ Phép", "zone": "Hồ Phép & Tháp Gãy", "x": -1515, "z": 240, "unlockedByDefault": false },
+    { "id": "G4", "name": "Đài Lửa Hố Khởi Nguyên", "zone": "Đầm Mực Ô Nhiễm", "x": -1320, "z": -565, "unlockedByDefault": false },
+    { "id": "G5", "name": "Đài Lửa Đảo Rừng Olive", "zone": "Đảo Tây Nam — Rừng Olive", "x": -480, "z": 1805, "unlockedByDefault": false },
+    { "id": "G6", "name": "Đài Lửa Hoang Mạc Đỏ", "zone": "Đảo Đông Nam — Hoang Mạc Đỏ", "x": 605, "z": 1750, "unlockedByDefault": false },
+    { "id": "G7", "name": "Đài Lửa Đền Thần Thú", "zone": "Đỉnh Rồng & Đền Cổ", "x": 1140, "z": -845, "unlockedByDefault": false },
+    { "id": "G8", "name": "Đài Lửa Cao Nguyên Tuyết", "zone": "Cao Nguyên Tuyết", "x": 1700, "z": -1560, "unlockedByDefault": false },
+    { "id": "G9", "name": "Đài Lửa Chân Cột Sáng", "zone": "Thủ Phủ Vàng — Cột Sáng", "x": 0, "z": -220, "unlockedByDefault": false }
+  ],
+  "megids": [
+    { "id": "megid_story", "name": "Kẻ Mục Rữa — Megid Sách Truyện", "bookId": "story_book", "assetKey": "boss_megid_story", "x": -1320, "z": -635, "arenaRadius": 42, "maxHp": 2400, "maxPoise": 120, "rewardRunes": 3500, "level": 32 },
+    { "id": "megid_creature", "name": "Ác Thú Huyết Sa — Megid Sách Sinh Vật", "bookId": "creature_book", "assetKey": "boss_megid_creature", "x": 640, "z": 1790, "arenaRadius": 46, "maxHp": 4200, "maxPoise": 150, "rewardRunes": 6800, "level": 56 },
+    { "id": "megid_mythic", "name": "Hắc Long Vô Tự — Megid Sách Thần Thú", "bookId": "mythic_book", "assetKey": "boss_megid_mythic", "x": 1750, "z": -1620, "arenaRadius": 50, "maxHp": 6800, "maxPoise": 180, "rewardRunes": 12000, "level": 86 }
+  ],
+  "sacredShards": [
+    { "id": "shard_01", "name": "Mảnh Kiếm I — Bình Minh Tro", "bookId": "story_book", "x": -1385, "z": 1540 },
+    { "id": "shard_02", "name": "Mảnh Kiếm II — Bìa Sách Khâu", "bookId": "story_book", "x": -1150, "z": 910 },
+    { "id": "shard_03", "name": "Mảnh Kiếm III — Tàn Ảnh Chân Lý", "bookId": "story_book", "x": -1555, "z": 195 },
+    { "id": "shard_04", "name": "Mảnh Kiếm IV — Lệ Mực Cổ", "bookId": "story_book", "x": -1290, "z": -590 },
+    { "id": "shard_05", "name": "Mảnh Kiếm V — Rễ Olive", "bookId": "creature_book", "x": -520, "z": 1860 },
+    { "id": "shard_06", "name": "Mảnh Kiếm VI — Hổ Phách Đầm Lầy", "bookId": "creature_book", "x": -410, "z": 1720 },
+    { "id": "shard_07", "name": "Mảnh Kiếm VII — Xương Sa Mạc", "bookId": "creature_book", "x": 580, "z": 1705 },
+    { "id": "shard_08", "name": "Mảnh Kiếm VIII — Tro Nung Đỏ", "bookId": "creature_book", "x": 670, "z": 1835 },
+    { "id": "shard_09", "name": "Mảnh Kiếm IX — Vảy Đền Cổ", "bookId": "mythic_book", "x": 1120, "z": -910 },
+    { "id": "shard_10", "name": "Mảnh Kiếm X — Chuôi Sấm Sét", "bookId": "mythic_book", "x": 1220, "z": -820 },
+    { "id": "shard_11", "name": "Mảnh Kiếm XI — Băng Đỉnh Tuyết", "bookId": "mythic_book", "x": 1680, "z": -1520 },
+    { "id": "shard_12", "name": "Mảnh Kiếm XII — Trang Mây Bí Mật", "bookId": "mythic_book", "x": -2480, "z": -1920 }
+  ],
+  "portals": [
+    { "id": "portal_cloud_west", "label": "Cổng Sương Đảo Mây Bí Mật", "from": { "x": -1620, "z": 240 }, "to": { "x": -2480, "z": -1900 } },
+    { "id": "portal_cloud_return", "label": "Trở về Bờ Hồ Phép", "from": { "x": -2480, "z": -1940 }, "to": { "x": -1600, "z": 240 } },
+    { "id": "portal_blue_vortex", "label": "Cổng Xoáy Xanh — Xuống Thế Giới Ngầm Tầng 1", "from": { "x": 2380, "z": -1420 }, "to": { "x": 2380, "z": -1420, "layer": "under1" } }
+  ]
+}

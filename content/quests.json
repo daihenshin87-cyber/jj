@@ -1,0 +1,29 @@
+[
+  {
+    "id": "q_chapter1_rotting",
+    "title": "Chương I: Kẻ Mục Rữa Sách Truyện",
+    "desc": "Đánh bại Megid đầu tiên tại Đầm Mực Ô Nhiễm phía Bắc lục địa Sách Truyện.",
+    "type": "megid",
+    "targetId": "megid_story"
+  },
+  {
+    "id": "q_three_megids",
+    "title": "Thanh Tẩy Ba Megid",
+    "desc": "Hạ gục cả 3 Megid tại Sách Truyện, Sách Sinh Vật (Hoang Mạc Đỏ) và Sách Thần Thú (Cao Nguyên Tuyết).",
+    "type": "megid_all",
+    "requiredCount": 3
+  },
+  {
+    "id": "q_twelve_shards",
+    "title": "Mười Hai Mảnh Thánh Kiếm Chân Lý",
+    "desc": "Thu thập đủ 12 Mảnh Thánh Kiếm rải rác khắp 3 vùng Sách và Đảo Mây Bí Mật.",
+    "type": "shards",
+    "requiredCount": 12
+  },
+  {
+    "id": "q_golden_capital",
+    "title": "Vùng Ẩn Cuối — Thủ Phủ Vàng",
+    "desc": "Mở phong ấn tại Cột Sáng Trang Sách sau khi đủ 12 mảnh và diệt đủ 3 Megid.",
+    "type": "final_unlock"
+  }
+]

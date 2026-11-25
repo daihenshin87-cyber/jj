@@ -1,0 +1,42 @@
+[
+  {
+    "id": "N1",
+    "name": "Ông Lão Đóng Bìa",
+    "role": "Thợ khâu sách · Thương nhân",
+    "assetKey": "npc_bookbinder",
+    "x": -1172,
+    "z": 968,
+    "dialogueId": "dlg_bookbinder",
+    "shopIds": ["gold_chalk_powder", "dry_paper_talisman", "steady_thread_ring"]
+  },
+  {
+    "id": "N2",
+    "name": "Kẻ Mất Trí Nhớ Bến Tro",
+    "role": "Cựu kiếm sĩ Chân Lý",
+    "assetKey": "npc_ash_amnesiac",
+    "x": -1524,
+    "z": 248,
+    "dialogueId": "dlg_ash_amnesiac",
+    "shopIds": []
+  },
+  {
+    "id": "N3",
+    "name": "Thiếu Nữ Sương Trắng",
+    "role": "Dư ảnh Wonder World",
+    "assetKey": "npc_mist_maiden",
+    "x": -1306,
+    "z": -580,
+    "dialogueId": "dlg_mist_maiden",
+    "shopIds": []
+  },
+  {
+    "id": "N4",
+    "name": "Người Canh Cột Sáng",
+    "role": "Hộ vệ Thủ Phủ Vàng",
+    "assetKey": "npc_mist_maiden",
+    "x": 14,
+    "z": -226,
+    "dialogueId": "dlg_capital_warden",
+    "shopIds": ["gold_chalk_powder", "dry_paper_talisman"]
+  }
+]

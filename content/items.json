@@ -1,0 +1,86 @@
+{
+  "burned_page": {
+    "id": "burned_page",
+    "name": "Mảnh Giấy Cháy Xém",
+    "cat": "story",
+    "desc": "Trang xé từ Sách Toàn Năng còn lưu nét mực vàng: 'Năm người bạn đến Wonder World, ba kẻ tuyệt vọng vì không thể sáng tạo đã xé rách bình minh.'"
+  },
+  "ink_rust_dagger": {
+    "id": "ink_rust_dagger",
+    "name": "Đoản Kiếm Gỉ Mực",
+    "cat": "weapon",
+    "dmgBonus": 18,
+    "bleedBonus": 12,
+    "desc": "Lưỡi kiếm thấm mực ô nhiễm của các trang rách. Đòn chém tích tụ chảy máu."
+  },
+  "truth_remnant_sword": {
+    "id": "truth_remnant_sword",
+    "name": "Tàn Ảnh Chân Lý",
+    "cat": "weapon",
+    "dmgBonus": 42,
+    "poiseBonus": 14,
+    "desc": "Kiếm gãy của Hội Kiếm Chân Lý (Sword of Logos). Vẫn cộng hưởng mạnh với 12 Mảnh Thánh Kiếm."
+  },
+  "moss_cloak": {
+    "id": "moss_cloak",
+    "name": "Áo Choàng Rêu Mục",
+    "cat": "armor",
+    "defMult": 0.82,
+    "desc": "Dệt từ bìa sách cũ và rêu ẩm Làng Bìa Cũ. Giảm 18% sát thương nhận vào."
+  },
+  "gold_chalk_powder": {
+    "id": "gold_chalk_powder",
+    "name": "Bột Phấn Chỉ Vàng",
+    "cat": "consumable",
+    "price": 140,
+    "desc": "Xóa hiệu ứng chậm của Đầm Mực và tăng tốc hồi Thể lực trong 15 giây."
+  },
+  "dry_paper_talisman": {
+    "id": "dry_paper_talisman",
+    "name": "Lá Bùa Giấy Khô",
+    "cat": "consumable",
+    "price": 160,
+    "desc": "Nghiền nát giấy bùa sạch để hồi tức thì 120 FP."
+  },
+  "diluted_ink_bolt": {
+    "id": "diluted_ink_bolt",
+    "name": "Mũi Tên Mực Loãng",
+    "cat": "spell",
+    "fpCost": 16,
+    "stamCost": 14,
+    "dmg": 165,
+    "desc": "Phép thuật rút từ Megid ô nhiễm. Khi trang bị ở ô Phép, chiêu [Q] bắn loạt 3 tia mực xuyên thấu."
+  },
+  "steady_thread_ring": {
+    "id": "steady_thread_ring",
+    "name": "Nhẫn Chỉ Bền",
+    "cat": "ring",
+    "price": 320,
+    "maxStamBonus": 25,
+    "desc": "Nhẫn bện từ chỉ khâu gáy sách cổ. Tăng +25 Thể lực tối đa."
+  },
+  "old_paper_reins": {
+    "id": "old_paper_reins",
+    "name": "Dây Cương Giấy Cũ",
+    "cat": "story",
+    "desc": "Cường hóa Tàn Mã Chỉ Vàng (+18% tốc độ phi nước đại)."
+  },
+  "rotting_book_shard": {
+    "id": "rotting_book_shard",
+    "name": "Lõi Ô Nhiễm: Megid Sách Truyện",
+    "cat": "megid_core",
+    "desc": "Một trong ba lõi Megid cần thanh tẩy để mở khóa Vùng Ẩn Cuối tại Thủ Phủ Vàng."
+  },
+  "creature_book_shard": {
+    "id": "creature_book_shard",
+    "name": "Lõi Ô Nhiễm: Megid Sách Sinh Vật",
+    "cat": "megid_core",
+    "desc": "Lõi tà lực từ Đảo Hoang Mạc Đỏ. Đưa thế giới tiến gần ngày tái hợp."
+  },
+  "mythic_book_shard": {
+    "id": "mythic_book_shard",
+    "name": "Lõi Ô Nhiễm: Megid Sách Thần Thú",
+    "cat": "megid_core",
+    "desc": "Lõi rồng cổ từ Cao Nguyên Tuyết."
+  }
+}
